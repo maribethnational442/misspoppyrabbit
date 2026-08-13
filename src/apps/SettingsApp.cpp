@@ -9,15 +9,14 @@ namespace {
 constexpr int HEADER_Y = 18;
 constexpr int LIST_Y   = 34;
 constexpr int ROW_H    = 13;
-constexpr int VISIBLE_ROWS = 6;
 }
 
 const char* const* SettingsApp::icon() const { return icons::GEAR; }
 
 void SettingsApp::onEnter() {
     _mode = Mode::List;
-    _sel = 0;
-    _scroll = 0;
+    _nav.reset();
+    _nav.visible = 6;
     _lastState = wifiService.state();
 }
 
@@ -64,7 +63,7 @@ void SettingsApp::activateRow(int row) {
     }
     if (wifiService.hasCredentials() && row == 1) {
         wifiService.forget();
-        _sel = 0;
+        _nav.reset();
         requestRedraw();
         return;
     }
@@ -75,8 +74,7 @@ void SettingsApp::activateRow(int row) {
         wifiService.connectTo(_nets[idx].ssid, "", /*save=*/true);
     } else {
         _targetNet = idx;
-        _passLen = 0;
-        _passBuf[0] = '\0';
+        _pass.clear();
         _mode = Mode::Password;
     }
     requestRedraw();
@@ -119,11 +117,11 @@ void SettingsApp::drawList(M5Canvas& c) {
 
     // Lista con scroll
     const int netBase = 1 + (wifiService.hasCredentials() ? 1 : 0);
-    for (int v = 0; v < VISIBLE_ROWS; ++v) {
-        const int row = _scroll + v;
+    for (int v = 0; v < _nav.visible; ++v) {
+        const int row = _nav.scroll + v;
         if (row >= rowCount()) break;
         const int y = LIST_Y + v * ROW_H;
-        const bool selected = (row == _sel);
+        const bool selected = (row == _nav.sel);
 
         if (selected) c.fillRoundRect(2, y - 2, SCREEN_W - 4, ROW_H, 3, POPPY_DIM);
         c.setTextColor(selected ? PRIMARY : GRAY);
@@ -158,12 +156,7 @@ void SettingsApp::drawPassword(M5Canvas& c) {
     snprintf(title, sizeof(title), "Clave de '%s':", _nets[_targetNet].ssid);
     c.drawString(title, PADDING, 30);
 
-    // Caja de texto con cursor
-    c.drawRoundRect(PADDING, 44, SCREEN_W - 2 * PADDING, 18, 3, POPPY);
-    c.setTextColor(PRIMARY);
-    c.drawString(_passBuf, PADDING + 5, 49);
-    const int cursorX = PADDING + 5 + c.textWidth(_passBuf);
-    c.drawFastVLine(cursorX + 1, 47, 12, POPPY);
+    _pass.draw(c, PADDING, 44, SCREEN_W - 2 * PADDING);
 
     c.setTextDatum(textdatum_t::bottom_left);
     c.setTextColor(DARKGRAY);
@@ -172,49 +165,29 @@ void SettingsApp::drawPassword(M5Canvas& c) {
 
 void SettingsApp::onKey(const KeyEvent& e) {
     if (_mode == Mode::Password) {
-        switch (e.key) {
-            case Key::Char:
-                if (_passLen < (int)sizeof(_passBuf) - 1 && e.ch >= 32) {
-                    _passBuf[_passLen++] = e.ch;
-                    _passBuf[_passLen] = '\0';
-                    requestRedraw();
-                }
-                break;
-            case Key::Backspace:
-                if (_passLen > 0) {
-                    _passBuf[--_passLen] = '\0';
-                    requestRedraw();
-                }
-                break;
-            case Key::Ok:
-                wifiService.connectTo(_nets[_targetNet].ssid, _passBuf, /*save=*/true);
-                _mode = Mode::List;
-                requestRedraw();
-                break;
-            case Key::Back:
-                _mode = Mode::List;
-                requestRedraw();
-                break;
-            default:
-                break;
+        if (_pass.handleKey(e)) {
+            requestRedraw();
+            return;
+        }
+        if (e.key == Key::Ok) {
+            wifiService.connectTo(_nets[_targetNet].ssid, _pass.buf, /*save=*/true);
+            _mode = Mode::List;
+            requestRedraw();
+        } else if (e.key == Key::Back) {
+            _mode = Mode::List;
+            requestRedraw();
         }
         return;
     }
 
     // Modo lista
+    if (_nav.onKey(e, rowCount())) {
+        requestRedraw();
+        return;
+    }
     switch (e.key) {
-        case Key::Up:
-            if (_sel > 0) --_sel;
-            if (_sel < _scroll) _scroll = _sel;
-            requestRedraw();
-            break;
-        case Key::Down:
-            if (_sel < rowCount() - 1) ++_sel;
-            if (_sel >= _scroll + VISIBLE_ROWS) _scroll = _sel - VISIBLE_ROWS + 1;
-            requestRedraw();
-            break;
         case Key::Ok:
-            activateRow(_sel);
+            activateRow(_nav.sel);
             break;
         case Key::Back:
             appManager.goBack();

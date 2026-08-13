@@ -1,6 +1,8 @@
 #pragma once
 #include "../core/App.h"
 #include "../core/WifiService.h"
+#include "../ui/widgets/ListNav.h"
+#include "../ui/widgets/TextField.h"
 
 // Cara visible del WifiService: estado, escaneo de redes, conexión con
 // contraseña y "olvidar red". Dos modos internos: lista y entrada de texto.
@@ -31,15 +33,12 @@ private:
     void drawPassword(M5Canvas& c);
 
     Mode _mode = Mode::List;
-    int  _sel = 0;
-    int  _scroll = 0;
+    ListNav   _nav;
+    TextField _pass;
 
     Net _nets[MAX_NETS];
     int _netCount = 0;
-
-    char _passBuf[65] = {0};
-    int  _passLen = 0;
-    int  _targetNet = -1;
+    int _targetNet = -1;
 
     WifiService::State _lastState = WifiService::State::Idle;
 };
