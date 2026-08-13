@@ -8,8 +8,11 @@
 
 #include "core/AppManager.h"
 #include "core/WifiService.h"
+#include "core/StorageService.h"
 #include "ui/BootScreen.h"
 #include "apps/LauncherApp.h"
+#include "apps/TasksApp.h"
+#include "apps/PomodoroApp.h"
 #include "apps/SettingsApp.h"
 #include "apps/ClockApp.h"
 #include "apps/AboutApp.h"
@@ -17,6 +20,8 @@
 // Apps como objetos globales estáticos: viven toda la sesión, cero heap,
 // cero fragmentación (clave sin PSRAM).
 static LauncherApp launcherApp;
+static TasksApp    tasksApp;
+static PomodoroApp pomodoroApp;
 static SettingsApp settingsApp;
 static ClockApp    clockApp;
 static AboutApp    aboutApp;
@@ -30,9 +35,12 @@ void setup() {
     appManager.begin();             // crea el canvas de 240×135
 
     wifiService.begin();            // no bloquea: conecta durante el boot screen
+    storage.begin();                // monta la microSD (si hay)
     showBootScreen(appManager.canvas());
 
     // Registro = lo que lista el Launcher (el propio Launcher no se registra)
+    appManager.registerApp(&tasksApp);
+    appManager.registerApp(&pomodoroApp);
     appManager.registerApp(&settingsApp);
     appManager.registerApp(&clockApp);
     appManager.registerApp(&aboutApp);

@@ -50,6 +50,46 @@ static const char* const CLOCK[ICON_H] = {
     "                ",
 };
 
+// Lista de tareas (checkboxes + líneas; el del medio, hecho)
+static const char* const TASKS[ICON_H] = {
+    "                ",
+    " ####  ######## ",
+    " #  #  ######## ",
+    " ####           ",
+    "                ",
+    " ####  ######## ",
+    " #GG#  ######## ",
+    " ####           ",
+    "                ",
+    " ####  ######## ",
+    " #  #  ######## ",
+    " ####           ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+};
+
+// Tomate/poppy (Pomodoro)
+static const char* const POMODORO[ICON_H] = {
+    "       GG       ",
+    "     GGGG       ",
+    "      GG        ",
+    "    RRRRRR      ",
+    "  RRRRRRRRRR    ",
+    " RRRRRRRRRRRR   ",
+    " RRRRRRRRRRRR   ",
+    " RRRRRRRRRRRR   ",
+    " RRRRRRRRRRRR   ",
+    "  RRRRRRRRRR    ",
+    "   RRRRRRRR     ",
+    "    RRRRRR      ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+};
+
 // Información (About)
 static const char* const INFO[ICON_H] = {
     "                ",
