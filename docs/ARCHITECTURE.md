@@ -6,9 +6,10 @@ paleta negro/blanco/poppy/verde definida en `src/ui/Theme.h`.
 
 ## Roadmap
 
-- **v0.1 (actual)**: núcleo — framework de apps, launcher, Settings con WiFi
-- v0.2: Tareas + Pomodoro con persistencia en microSD
-- v0.3: WebUI desde el dispositivo (ESPAsyncWebServer + WebSocket)
+- ✅ v0.1: núcleo — framework de apps, launcher, Settings con WiFi
+- ✅ v0.2: Tareas + Pomodoro con persistencia en microSD (StorageService con
+  escritura atómica, TaskRepo JSON, widgets ListNav/TextField, Sound.h)
+- **v0.3 (actual)**: WebUI desde el dispositivo (ESPAsyncWebServer + WebSocket)
 - v0.4: Agenda multi-calendario (4 contextos con color, alertas sonoras)
 - v0.5: `POST /api/events/import` (JSON desde extensión de Chrome)
 
