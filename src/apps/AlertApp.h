@@ -17,6 +17,7 @@ public:
 
 private:
     Marquee _titleScroll;   // los títulos de reuniones suelen ser largos
+    Marquee _headScroll;    // "Are you in this meeting?" tampoco cabe a size 2
     uint32_t _blinkT = 0;
     bool _blinkOn = true;
 };

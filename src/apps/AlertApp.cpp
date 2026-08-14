@@ -10,12 +10,14 @@ AlertApp alertApp;
 
 void AlertApp::onEnter() {
     _titleScroll.reset();
+    _headScroll.reset();
     _blinkT = 0;
     _blinkOn = true;
 }
 
 void AlertApp::update(uint32_t dtMs) {
     if (_titleScroll.tick(dtMs)) requestRedraw();
+    if (_headScroll.tick(dtMs)) requestRedraw();
     // Borde parpadeante en el modo "¿estás ahí?": urgencia visible
     if (alertService.kind() == AlertService::Kind::Confirm) {
         _blinkT += dtMs;
@@ -47,7 +49,7 @@ void AlertApp::draw(M5Canvas& c) {
     const Str head = (kind == AlertService::Kind::Pre10) ? Str::AlertIn10
                    : (kind == AlertService::Kind::Pre2)  ? Str::AlertIn2
                                                          : Str::AlertConfirm;
-    c.drawString(tr(head), 14, 28);
+    _headScroll.draw(c, tr(head), 14, 28, SCREEN_W - 28, 18);
 
     // Título del evento (marquee si no cabe) + franja del calendario
     c.fillRect(14, 52, 4, 24, calCol);
