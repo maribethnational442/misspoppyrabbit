@@ -64,10 +64,10 @@ void TasksApp::drawList(M5Canvas& c) {
 
     if (!storage.mounted()) {
         c.setTextColor(POPPY);
-        c.drawString("Sin microSD: los cambios no se guardan", PADDING, LIST_Y - 2);
+        c.drawString(tr(Str::TasksNoSd), PADDING, LIST_Y - 2);
     } else if (taskStore.corrupt()) {
         c.setTextColor(POPPY);
-        c.drawString("tasks.json ilegible: se sobreescribira", PADDING, LIST_Y - 2);
+        c.drawString(tr(Str::TasksCorrupt), PADDING, LIST_Y - 2);
     }
 
     const int count = taskStore.count();
@@ -76,7 +76,7 @@ void TasksApp::drawList(M5Canvas& c) {
         pixelart::draw(c, sprites::RABBIT_IDLE, sprites::RABBIT_H, 104, 40, 2);
         c.setTextDatum(textdatum_t::top_center);
         c.setTextColor(GRAY);
-        c.drawString("Sin tareas. Pulsa [n] para crear una.", SCREEN_W / 2, 82);
+        c.drawString(tr(Str::TasksEmpty), SCREEN_W / 2, 82);
     }
 
     const int headerOffset = (!storage.mounted() || taskStore.corrupt()) ? 10 : 0;
@@ -112,7 +112,7 @@ void TasksApp::drawList(M5Canvas& c) {
 
     c.setTextDatum(textdatum_t::bottom_left);
     c.setTextColor(DARKGRAY);
-    c.drawString("n:nueva d:borrar p:prio ENTER:hecha", PADDING, SCREEN_H - 2);
+    c.drawString(tr(Str::TasksHint), PADDING, SCREEN_H - 2);
 }
 
 void TasksApp::drawNewTask(M5Canvas& c) {
@@ -124,10 +124,10 @@ void TasksApp::drawNewTask(M5Canvas& c) {
     c.setTextSize(1);
     c.setTextDatum(textdatum_t::top_left);
     c.setTextColor(PRIMARY);
-    c.drawString("Nueva tarea:", 18, 46);
+    c.drawString(tr(Str::NewTaskTitle), 18, 46);
     _input.draw(c, 18, 58, SCREEN_W - 36);
     c.setTextColor(DARKGRAY);
-    c.drawString("[ENTER] crear   [`] cancelar", 18, 84);
+    c.drawString(tr(Str::NewTaskHint), 18, 84);
 }
 
 void TasksApp::drawConfirmDelete(M5Canvas& c) {
@@ -141,10 +141,10 @@ void TasksApp::drawConfirmDelete(M5Canvas& c) {
     c.setTextDatum(textdatum_t::top_left);
     c.setTextColor(PRIMARY);
     char msg[64];
-    snprintf(msg, sizeof(msg), "Borrar '%.30s'?", t->title);
+    snprintf(msg, sizeof(msg), tr(Str::DeleteConfirmFmt), t->title);
     c.drawString(msg, 18, 53);
     c.setTextColor(DARKGRAY);
-    c.drawString("[ENTER] si   [`] no", 18, 73);
+    c.drawString(tr(Str::DeleteHint), 18, 73);
 }
 
 void TasksApp::onKey(const KeyEvent& e) {

@@ -1,5 +1,6 @@
 #pragma once
 #include "../core/App.h"
+#include "../core/Lang.h"
 #include "../core/WifiService.h"
 #include "../ui/widgets/ListNav.h"
 #include "../ui/widgets/TextField.h"
@@ -9,7 +10,7 @@
 // contraseña y "olvidar red". Dos modos internos: lista y entrada de texto.
 class SettingsApp : public App {
 public:
-    const char* name() const override { return "Settings"; }
+    const char* name() const override { return tr(Str::AppSettings); }
     const char* const* icon() const override;
 
     void onEnter() override;

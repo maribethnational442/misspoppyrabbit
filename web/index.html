@@ -76,7 +76,7 @@
   <canvas id="rabbit" width="16" height="16" style="width:48px;height:48px"></canvas>
   <div>
     <h1>Miss Poppy Rabbit</h1>
-    <div class="sub" id="devname">conectando...</div>
+    <div class="sub" id="devname">connecting...</div>
   </div>
   <div id="wsdot" title="WebSocket"></div>
 </header>
@@ -89,20 +89,20 @@
       <div id="pomo-phase" class="work">TRABAJO</div>
       <div id="pomo-today"></div>
     </div>
-    <button id="pomo-btn" onclick="post('/api/pomodoro/action')">Iniciar</button>
-    <button onclick="post('/api/pomodoro/reset')">Reiniciar</button>
+    <button id="pomo-btn" onclick="post('/api/pomodoro/action')">Start</button>
+    <button id="pomo-reset" onclick="post('/api/pomodoro/reset')">Reset</button>
     <div id="pomo-bar"><div id="pomo-fill"></div></div>
   </div>
 </div>
 
 <div class="card">
-  <h2>TAREAS</h2>
+  <h2 id="h-tasks">TASKS</h2>
   <form id="newtask" onsubmit="return addTask()">
-    <input id="title" maxlength="47" placeholder="Nueva tarea..." autocomplete="off">
-    <button type="submit">Crear</button>
+    <input id="title" maxlength="47" placeholder="New task..." autocomplete="off">
+    <button type="submit" id="btn-create">Add</button>
   </form>
   <ul id="tasks"></ul>
-  <div id="empty" hidden>Sin tareas. El conejo esta orgulloso de ti.</div>
+  <div id="empty" hidden>No tasks. The rabbit is proud of you.</div>
 </div>
 
 <footer>
@@ -142,6 +142,34 @@ const COLORS = { "#": "#fff", "R": "#E63946", "r": "#8a222a", "G": "#6A994E" };
 
 const $ = (id) => document.getElementById(id);
 
+// i18n: el idioma lo manda el dispositivo en /api/status ("lang") — una sola
+// fuente de verdad. La web solo pinta lo que el firmware diga.
+const I18N = {
+  en: { tasks: "TASKS", reset: "Reset", create: "Add", placeholder: "New task...",
+        empty: "No tasks. The rabbit is proud of you.", confirmDel: "Delete task?",
+        work: "WORK", brk: "BREAK", today: "Today", prio: ["low", "med", "high"],
+        btn: { ready: "Start", running: "Pause", paused: "Resume", finished: "Next" },
+        batt: "battery", ram: "free RAM", up: "uptime" },
+  es: { tasks: "TAREAS", reset: "Reiniciar", create: "Crear", placeholder: "Nueva tarea...",
+        empty: "Sin tareas. El conejo esta orgulloso de ti.", confirmDel: "Borrar tarea?",
+        work: "TRABAJO", brk: "DESCANSO", today: "Hoy", prio: ["baja", "media", "alta"],
+        btn: { ready: "Iniciar", running: "Pausar", paused: "Seguir", finished: "Siguiente" },
+        batt: "bateria", ram: "RAM libre", up: "uptime" },
+};
+let LANG = "en";
+const T = () => I18N[LANG];
+let lastTasks = [], lastPomo = null;
+
+function applyLang() {
+  document.documentElement.lang = LANG;
+  $("h-tasks").textContent = T().tasks;
+  $("pomo-reset").textContent = T().reset;
+  $("btn-create").textContent = T().create;
+  $("title").placeholder = T().placeholder;
+  renderTasks(lastTasks);
+  if (lastPomo) renderPomo(lastPomo);
+}
+
 async function post(url) { await fetch(url, { method: "POST" }); }
 
 function addTask() {
@@ -153,8 +181,8 @@ function addTask() {
   return false;   // no recargar la página
 }
 
-const PRIO = ["baja", "media", "alta"];
 function renderTasks(tasks) {
+  lastTasks = tasks;
   const ul = $("tasks");
   ul.innerHTML = "";
   const sorted = [...tasks.filter(t => !t.done), ...tasks.filter(t => t.done)];
@@ -164,35 +192,40 @@ function renderTasks(tasks) {
     li.innerHTML =
       `<div class="box" onclick="post('/api/tasks/toggle?id=${t.id}')"></div>` +
       `<span class="title"></span>` +
-      `<span class="prio p${t.prio}" onclick="post('/api/tasks/priority?id=${t.id}')">${PRIO[t.prio]}</span>` +
-      `<span class="del" onclick="if(confirm('Borrar tarea?'))post('/api/tasks/delete?id=${t.id}')">&times;</span>`;
+      `<span class="prio p${t.prio}" onclick="post('/api/tasks/priority?id=${t.id}')">${T().prio[t.prio]}</span>` +
+      `<span class="del" onclick="if(confirm('${T().confirmDel}'))post('/api/tasks/delete?id=${t.id}')">&times;</span>`;
     li.querySelector(".title").textContent = t.title;   // seguro ante HTML en títulos
     ul.appendChild(li);
   }
+  $("empty").textContent = T().empty;
   $("empty").hidden = sorted.length > 0;
 }
 
 function renderPomo(p) {
+  lastPomo = p;
   const m = String(Math.floor(p.remainingSec / 60)).padStart(2, "0");
   const s = String(p.remainingSec % 60).padStart(2, "0");
   $("pomo-time").textContent = `${m}:${s}`;
   const work = p.phase === "work";
-  $("pomo-phase").textContent = work ? "TRABAJO" : "DESCANSO";
+  $("pomo-phase").textContent = work ? T().work : T().brk;
   $("pomo-phase").className = work ? "work" : "break";
   $("pomo-fill").style.width = (100 * p.remainingSec / p.totalSec) + "%";
   $("pomo-fill").style.background = work ? "var(--poppy)" : "var(--stem)";
-  $("pomo-today").textContent = `Hoy: ${p.today} pomodoros`;
-  $("pomo-btn").textContent =
-    { ready: "Iniciar", running: "Pausar", paused: "Seguir", finished: "Siguiente" }[p.run];
+  $("pomo-today").textContent = `${T().today}: ${p.today} pomodoros`;
+  $("pomo-btn").textContent = T().btn[p.run];
 }
 
 async function refreshStatus() {
   try {
     const s = await (await fetch("/api/status")).json();
+    if (s.lang && s.lang !== LANG) {   // el dispositivo cambió de idioma
+      LANG = s.lang;
+      applyLang();
+    }
     $("devname").textContent = `${s.ssid} - ${s.ip}`;
-    $("st-batt").textContent = `bateria ${s.battery}%`;
-    $("st-heap").textContent = `RAM libre ${(s.heap / 1024) | 0} KB`;
-    $("st-up").textContent = `uptime ${(s.uptimeMin / 60) | 0}h ${s.uptimeMin % 60}m`;
+    $("st-batt").textContent = `${T().batt} ${s.battery}%`;
+    $("st-heap").textContent = `${T().ram} ${(s.heap / 1024) | 0} KB`;
+    $("st-up").textContent = `${T().up} ${(s.uptimeMin / 60) | 0}h ${s.uptimeMin % 60}m`;
     $("st-ver").textContent = `v${s.version}`;
   } catch (e) { /* dispositivo dormido o fuera de red */ }
 }

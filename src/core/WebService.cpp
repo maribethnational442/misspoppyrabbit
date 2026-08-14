@@ -3,6 +3,7 @@
 #include <LittleFS.h>
 #include <M5Cardputer.h>
 #include "Config.h"
+#include "Lang.h"
 #include "TaskStore.h"
 #include "PomodoroService.h"
 #include "WifiService.h"
@@ -161,9 +162,9 @@ void WebService::setupRoutes() {
 void WebService::buildStatusJson(String& out) {
     char buf[224];
     snprintf(buf, sizeof(buf),
-             "{\"name\":\"%s\",\"version\":\"%s\",\"heap\":%u,\"battery\":%d,"
+             "{\"name\":\"%s\",\"version\":\"%s\",\"lang\":\"%s\",\"heap\":%u,\"battery\":%d,"
              "\"ssid\":\"%s\",\"ip\":\"%s\",\"uptimeMin\":%u,\"wsClients\":%u}",
-             config::OS_NAME, config::OS_VERSION,
+             config::OS_NAME, config::OS_VERSION, lang::code(),
              (unsigned)ESP.getFreeHeap(),
              M5Cardputer.Power.getBatteryLevel(),
              wifiService.ssid(), wifiService.ip().c_str(),

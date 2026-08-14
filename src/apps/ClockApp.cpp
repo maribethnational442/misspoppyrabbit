@@ -2,13 +2,8 @@
 #include "../core/AppManager.h"
 #include "../ui/Theme.h"
 #include "../ui/assets/Icons.h"
+#include "../core/Lang.h"
 #include <ctime>
-
-namespace {
-const char* const DAYS[]   = {"Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"};
-const char* const MONTHS[] = {"Ene", "Feb", "Mar", "Abr", "May", "Jun",
-                              "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"};
-}
 
 const char* const* ClockApp::icon() const { return icons::CLOCK; }
 
@@ -37,9 +32,9 @@ void ClockApp::draw(M5Canvas& c) {
         // Aún sin sincronizar por NTP
         c.setTextSize(1);
         c.setTextColor(GRAY);
-        c.drawString("Sin hora todavia.", SCREEN_W / 2, 55);
-        c.drawString("Conecta WiFi en Settings", SCREEN_W / 2, 70);
-        c.drawString("para sincronizar (NTP).", SCREEN_W / 2, 82);
+        c.drawString(tr(Str::ClockNoTime1), SCREEN_W / 2, 55);
+        c.drawString(tr(Str::ClockNoTime2), SCREEN_W / 2, 70);
+        c.drawString(tr(Str::ClockNoTime3), SCREEN_W / 2, 82);
         return;
     }
 
@@ -51,7 +46,7 @@ void ClockApp::draw(M5Canvas& c) {
 
     char date[32];
     snprintf(date, sizeof(date), "%s %d %s %d",
-             DAYS[t.tm_wday], t.tm_mday, MONTHS[t.tm_mon], t.tm_year + 1900);
+             lang::days()[t.tm_wday], t.tm_mday, lang::months()[t.tm_mon], t.tm_year + 1900);
     c.setTextSize(1);
     c.setTextColor(POPPY);
     c.drawString(date, SCREEN_W / 2, 95);

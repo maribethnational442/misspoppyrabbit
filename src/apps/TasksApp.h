@@ -1,5 +1,6 @@
 #pragma once
 #include "../core/App.h"
+#include "../core/Lang.h"
 #include "../models/Models.h"
 #include "../ui/widgets/ListNav.h"
 #include "../ui/widgets/TextField.h"
@@ -9,7 +10,7 @@
 // Teclas: [n] nueva  [d] borrar  [p] prioridad  [ENTER] hecha/pendiente
 class TasksApp : public App {
 public:
-    const char* name() const override { return "Tareas"; }
+    const char* name() const override { return tr(Str::AppTasks); }
     const char* const* icon() const override;
 
     void onEnter() override;

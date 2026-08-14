@@ -43,7 +43,7 @@ void AboutApp::draw(M5Canvas& c) {
     c.drawString("M5Stack Cardputer ADV", x, 72);
     c.drawString("ESP32-S3 @ 240MHz", x, 84);
 
-    snprintf(line, sizeof(line), "RAM libre: %u KB", (unsigned)(ESP.getFreeHeap() / 1024));
+    snprintf(line, sizeof(line), tr(Str::AboutRamFmt), (unsigned)(ESP.getFreeHeap() / 1024));
     c.setTextColor(STEM);
     c.drawString(line, x, 98);
 

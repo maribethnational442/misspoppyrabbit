@@ -4,6 +4,7 @@
 #include "../ui/PixelArt.h"
 #include "../ui/assets/PoppySprites.h"
 #include "../core/Config.h"
+#include "../core/Lang.h"
 #include <cmath>
 
 namespace {
@@ -90,7 +91,7 @@ void LauncherApp::draw(M5Canvas& c) {
     // Ayuda de teclas abajo
     c.setTextDatum(textdatum_t::bottom_left);
     c.setTextColor(DARKGRAY);
-    c.drawString("[;] [.] mover   [ENTER] abrir", LIST_X, SCREEN_H - 2);
+    c.drawString(tr(Str::LauncherHint), LIST_X, SCREEN_H - 2);
 }
 
 void LauncherApp::onKey(const KeyEvent& e) {

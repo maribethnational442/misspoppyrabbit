@@ -1,11 +1,12 @@
 #pragma once
 #include "../core/App.h"
+#include "../core/Lang.h"
 
 // Reloj a pantalla completa. La hora llega por NTP cuando hay WiFi
 // (la sincroniza WifiService al conectar).
 class ClockApp : public App {
 public:
-    const char* name() const override { return "Reloj"; }
+    const char* name() const override { return tr(Str::AppClock); }
     const char* const* icon() const override;
 
     void update(uint32_t dtMs) override;

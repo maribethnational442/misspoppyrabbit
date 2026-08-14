@@ -7,6 +7,7 @@
 #include <M5Cardputer.h>
 
 #include "core/AppManager.h"
+#include "core/Lang.h"
 #include "core/WifiService.h"
 #include "core/StorageService.h"
 #include "core/TaskStore.h"
@@ -37,6 +38,7 @@ void setup() {
 
     appManager.begin();             // crea el canvas de 240×135
 
+    lang::begin();                  // idioma guardado (defecto: ingles)
     wifiService.begin();            // no bloquea: conecta durante el boot screen
     storage.begin();                // monta la microSD (si hay)
     taskStore.begin();              // carga las tareas desde la SD

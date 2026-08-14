@@ -53,20 +53,27 @@ void SettingsApp::update(uint32_t dtMs) {
     if (_mode == Mode::List && _headerScroll.tick(dtMs)) requestRedraw();
 }
 
-// Filas: [0] Buscar redes | [1] Olvidar red (si hay guardada) | [2..] redes
+// Filas: [0] Buscar redes | [1] Idioma | [2] Olvidar red (si hay) | [3..] redes
 int SettingsApp::rowCount() const {
-    return 1 + (wifiService.hasCredentials() ? 1 : 0) + _netCount;
+    return 2 + (wifiService.hasCredentials() ? 1 : 0) + _netCount;
 }
 
 void SettingsApp::activateRow(int row) {
-    const int netBase = 1 + (wifiService.hasCredentials() ? 1 : 0);
+    const int netBase = 2 + (wifiService.hasCredentials() ? 1 : 0);
 
     if (row == 0) {
         if (!wifiService.scanning()) wifiService.startScan();
         requestRedraw();
         return;
     }
-    if (wifiService.hasCredentials() && row == 1) {
+    if (row == 1) {
+        // Alternar EN ↔ ES; todo se repinta con tr() así que basta redibujar
+        lang::set(lang::current() == lang::Code::EN ? lang::Code::ES
+                                                    : lang::Code::EN);
+        requestRedraw();
+        return;
+    }
+    if (wifiService.hasCredentials() && row == 2) {
         wifiService.forget();
         _nav.reset();
         requestRedraw();
@@ -106,14 +113,14 @@ void SettingsApp::drawList(M5Canvas& c) {
             headerCol = STEM;
             break;
         case WifiService::State::Connecting:
-            snprintf(header, sizeof(header), "WiFi: conectando a %s...", wifiService.ssid());
+            snprintf(header, sizeof(header), tr(Str::WifiConnectingFmt), wifiService.ssid());
             break;
         case WifiService::State::Failed:
-            snprintf(header, sizeof(header), "WiFi: fallo con %s", wifiService.ssid());
+            snprintf(header, sizeof(header), tr(Str::WifiFailedFmt), wifiService.ssid());
             headerCol = POPPY;
             break;
         default:
-            snprintf(header, sizeof(header), "WiFi: sin conexion");
+            snprintf(header, sizeof(header), "%s", tr(Str::WifiNone));
             break;
     }
     c.setTextColor(headerCol);
@@ -121,7 +128,7 @@ void SettingsApp::drawList(M5Canvas& c) {
     c.drawFastHLine(0, LIST_Y - 4, SCREEN_W, DARKGRAY);
 
     // Lista con scroll
-    const int netBase = 1 + (wifiService.hasCredentials() ? 1 : 0);
+    const int netBase = 2 + (wifiService.hasCredentials() ? 1 : 0);
     for (int v = 0; v < _nav.visible; ++v) {
         const int row = _nav.scroll + v;
         if (row >= rowCount()) break;
@@ -134,9 +141,11 @@ void SettingsApp::drawList(M5Canvas& c) {
         char line[48];
         if (row == 0) {
             snprintf(line, sizeof(line), "%s",
-                     wifiService.scanning() ? "Buscando redes..." : "> Buscar redes");
-        } else if (wifiService.hasCredentials() && row == 1) {
-            snprintf(line, sizeof(line), "> Olvidar '%s'", wifiService.ssid());
+                     wifiService.scanning() ? tr(Str::ScanningRow) : tr(Str::ScanRow));
+        } else if (row == 1) {
+            snprintf(line, sizeof(line), tr(Str::LanguageRowFmt), lang::displayName());
+        } else if (wifiService.hasCredentials() && row == 2) {
+            snprintf(line, sizeof(line), tr(Str::ForgetRowFmt), wifiService.ssid());
         } else {
             const Net& net = _nets[row - netBase];
             snprintf(line, sizeof(line), "%s%-22.22s %4d dBm",
@@ -147,7 +156,7 @@ void SettingsApp::drawList(M5Canvas& c) {
 
     c.setTextDatum(textdatum_t::bottom_left);
     c.setTextColor(DARKGRAY);
-    c.drawString("[ENTER] elegir  [`] volver  * = con clave", PADDING, SCREEN_H - 2);
+    c.drawString(tr(Str::SettingsHint), PADDING, SCREEN_H - 2);
 }
 
 void SettingsApp::drawPassword(M5Canvas& c) {
@@ -158,14 +167,14 @@ void SettingsApp::drawPassword(M5Canvas& c) {
 
     c.setTextColor(PRIMARY);
     char title[48];
-    snprintf(title, sizeof(title), "Clave de '%s':", _nets[_targetNet].ssid);
+    snprintf(title, sizeof(title), tr(Str::PasswordTitleFmt), _nets[_targetNet].ssid);
     c.drawString(title, PADDING, 30);
 
     _pass.draw(c, PADDING, 44, SCREEN_W - 2 * PADDING);
 
     c.setTextDatum(textdatum_t::bottom_left);
     c.setTextColor(DARKGRAY);
-    c.drawString("[ENTER] conectar  [`] cancelar  [DEL] borrar", PADDING, SCREEN_H - 2);
+    c.drawString(tr(Str::PasswordHint), PADDING, SCREEN_H - 2);
 }
 
 void SettingsApp::onKey(const KeyEvent& e) {

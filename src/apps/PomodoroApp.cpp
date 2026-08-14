@@ -77,37 +77,37 @@ void PomodoroApp::draw(M5Canvas& c) {
     c.setTextDatum(textdatum_t::top_left);
     c.setTextSize(2);
     c.setTextColor(phaseCol);
-    c.drawString(work ? "TRABAJO" : "DESCANSO", PANEL_X, 26);
+    c.drawString(tr(work ? Str::PomoWork : Str::PomoBreak), PANEL_X, 26);
 
     c.setTextSize(1);
     c.setTextColor(GRAY);
     switch (run) {
-        case Run::Ready:    c.drawString("Listo para empezar", PANEL_X, 48); break;
-        case Run::Running:  c.drawString("En marcha...", PANEL_X, 48); break;
-        case Run::Paused:   c.drawString("En pausa", PANEL_X, 48); break;
+        case Run::Ready:    c.drawString(tr(Str::PomoReady), PANEL_X, 48); break;
+        case Run::Running:  c.drawString(tr(Str::PomoRunning), PANEL_X, 48); break;
+        case Run::Paused:   c.drawString(tr(Str::PomoPaused), PANEL_X, 48); break;
         case Run::Finished:
             c.setTextColor(phaseCol);
-            c.drawString(work ? "Termino! A descansar" : "Termino! A trabajar", PANEL_X, 48);
+            c.drawString(tr(work ? Str::PomoFinWork : Str::PomoFinBreak), PANEL_X, 48);
             break;
     }
 
     char line[32];
-    snprintf(line, sizeof(line), "Hoy: %d pomodoros", pomodoroService.todayCount());
+    snprintf(line, sizeof(line), tr(Str::PomoTodayFmt), pomodoroService.todayCount());
     c.setTextColor(STEM);
     c.drawString(line, PANEL_X, 64);
 
     c.setTextColor(DARKGRAY);
     if (run == Run::Ready && work) {
-        snprintf(line, sizeof(line), ", / duracion: %d min", pomodoroService.workMin());
+        snprintf(line, sizeof(line), tr(Str::PomoDurationFmt), pomodoroService.workMin());
         c.drawString(line, PANEL_X, 84);
     }
     switch (run) {
-        case Run::Ready:    c.drawString("ENTER: empezar", PANEL_X, 96); break;
-        case Run::Running:  c.drawString("ENTER: pausar", PANEL_X, 96); break;
-        case Run::Paused:   c.drawString("ENTER: seguir", PANEL_X, 96); break;
-        case Run::Finished: c.drawString("ENTER: siguiente", PANEL_X, 96); break;
+        case Run::Ready:    c.drawString(tr(Str::PomoStartHint), PANEL_X, 96); break;
+        case Run::Running:  c.drawString(tr(Str::PomoPauseHint), PANEL_X, 96); break;
+        case Run::Paused:   c.drawString(tr(Str::PomoResumeHint), PANEL_X, 96); break;
+        case Run::Finished: c.drawString(tr(Str::PomoNextHint), PANEL_X, 96); break;
     }
-    c.drawString("r: reiniciar", PANEL_X, 108);
+    c.drawString(tr(Str::PomoResetHint), PANEL_X, 108);
 }
 
 void PomodoroApp::onKey(const KeyEvent& e) {
