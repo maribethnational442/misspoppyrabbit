@@ -1,100 +1,53 @@
 #include "TasksApp.h"
 #include "../core/AppManager.h"
 #include "../core/StorageService.h"
-#include "../models/TaskRepo.h"
+#include "../core/TaskStore.h"
 #include "../ui/Theme.h"
 #include "../ui/PixelArt.h"
 #include "../ui/assets/Icons.h"
 #include "../ui/assets/PoppySprites.h"
-#include <cstring>
 
 namespace {
 constexpr int LIST_Y = 20;
 constexpr int ROW_H  = 13;
-constexpr uint32_t SAVE_DEBOUNCE_MS = 1500;
 }
 
 const char* const* TasksApp::icon() const { return icons::TASKS; }
 
 void TasksApp::onEnter() {
     _mode = Mode::List;
-    if (!_loaded) {
-        const int n = taskrepo::load(_tasks, MAX_TASKS);
-        _corrupt = (n == -2);
-        _count = (n > 0) ? n : 0;
-        // id siguiente = mayor id existente + 1 (ids estables entre sesiones)
-        for (int i = 0; i < _count; ++i) {
-            if (_tasks[i].id >= _nextId) _nextId = _tasks[i].id + 1;
-        }
-        _loaded = true;
-        _nav.visible = 7;
-    }
+    _nav.visible = 7;
     rebuildOrder();
-}
-
-void TasksApp::onExit() {
-    // No dejamos un guardado pendiente en el aire al salir de la app
-    if (_dirtySave) saveNow();
+    _lastRev = taskStore.revision();
 }
 
 void TasksApp::update(uint32_t dtMs) {
     (void)dtMs;
-    // Debounce de guardado: marcar 3 tareas seguidas = 1 escritura a SD,
-    // no 3. La SD es lenta (~decenas de ms) y no queremos escrituras inútiles.
-    if (_dirtySave && millis() >= _saveAt) saveNow();
-}
-
-void TasksApp::markDirty() {
-    _dirtySave = true;
-    _saveAt = millis() + SAVE_DEBOUNCE_MS;
-}
-
-void TasksApp::saveNow() {
-    _dirtySave = false;
-    if (!taskrepo::save(_tasks, _count)) {
-        log_w("No se pudo guardar tasks.json");
+    // El store cambió (por nosotros O por el navegador): reordenar y repintar
+    if (taskStore.revision() != _lastRev) {
+        _lastRev = taskStore.revision();
+        rebuildOrder();
+        requestRedraw();
     }
 }
 
 // Presentación: pendientes primero (en su orden), hechas al final.
 void TasksApp::rebuildOrder() {
+    const models::Task* tasks = taskStore.tasks();
+    const int count = taskStore.count();
     int n = 0;
-    for (int i = 0; i < _count; ++i) {
-        if (!(_tasks[i].flags & models::EVT_DONE)) _order[n++] = i;
+    for (int i = 0; i < count; ++i) {
+        if (!(tasks[i].flags & models::EVT_DONE)) _order[n++] = i;
     }
-    for (int i = 0; i < _count; ++i) {
-        if (_tasks[i].flags & models::EVT_DONE) _order[n++] = i;
+    for (int i = 0; i < count; ++i) {
+        if (tasks[i].flags & models::EVT_DONE) _order[n++] = i;
     }
-    _nav.clampTo(_count);
+    _nav.clampTo(count);
 }
 
-models::Task* TasksApp::selectedTask() {
-    if (_count == 0) return nullptr;
-    return &_tasks[_order[_nav.sel]];
-}
-
-void TasksApp::addTask(const char* title) {
-    if (_count >= MAX_TASKS || title[0] == '\0') return;
-    models::Task& t = _tasks[_count++];
-    t.id = _nextId++;
-    strncpy(t.title, title, sizeof(t.title) - 1);
-    t.title[sizeof(t.title) - 1] = '\0';
-    t.due = 0;
-    t.calendarId = 0;
-    t.priority = 1;
-    t.flags = 0;
-    rebuildOrder();
-    markDirty();
-}
-
-void TasksApp::removeSelected() {
-    if (_count == 0) return;
-    const int idx = _order[_nav.sel];
-    // Compactar el array: mover una posición todo lo que está detrás
-    for (int i = idx; i < _count - 1; ++i) _tasks[i] = _tasks[i + 1];
-    --_count;
-    rebuildOrder();
-    markDirty();
+const models::Task* TasksApp::selectedTask() {
+    if (taskStore.count() == 0) return nullptr;
+    return &taskStore.tasks()[_order[_nav.sel]];
 }
 
 void TasksApp::draw(M5Canvas& c) {
@@ -112,12 +65,13 @@ void TasksApp::drawList(M5Canvas& c) {
     if (!storage.mounted()) {
         c.setTextColor(POPPY);
         c.drawString("Sin microSD: los cambios no se guardan", PADDING, LIST_Y - 2);
-    } else if (_corrupt) {
+    } else if (taskStore.corrupt()) {
         c.setTextColor(POPPY);
         c.drawString("tasks.json ilegible: se sobreescribira", PADDING, LIST_Y - 2);
     }
 
-    if (_count == 0) {
+    const int count = taskStore.count();
+    if (count == 0) {
         // Estado vacío con la mascota
         pixelart::draw(c, sprites::RABBIT_IDLE, sprites::RABBIT_H, 104, 40, 2);
         c.setTextDatum(textdatum_t::top_center);
@@ -125,11 +79,11 @@ void TasksApp::drawList(M5Canvas& c) {
         c.drawString("Sin tareas. Pulsa [n] para crear una.", SCREEN_W / 2, 82);
     }
 
-    const int headerOffset = (!storage.mounted() || _corrupt) ? 10 : 0;
+    const int headerOffset = (!storage.mounted() || taskStore.corrupt()) ? 10 : 0;
     for (int v = 0; v < _nav.visible; ++v) {
         const int row = _nav.scroll + v;
-        if (row >= _count) break;
-        const models::Task& t = _tasks[_order[row]];
+        if (row >= count) break;
+        const models::Task& t = taskStore.tasks()[_order[row]];
         const int y = LIST_Y + headerOffset + v * ROW_H;
         const bool selected = (row == _nav.sel);
         const bool done = t.flags & models::EVT_DONE;
@@ -200,7 +154,7 @@ void TasksApp::onKey(const KeyEvent& e) {
             return;
         }
         if (e.key == Key::Ok) {
-            addTask(_input.buf);
+            taskStore.add(_input.buf);
             _mode = Mode::List;
             requestRedraw();
         } else if (e.key == Key::Back) {
@@ -212,7 +166,7 @@ void TasksApp::onKey(const KeyEvent& e) {
 
     if (_mode == Mode::ConfirmDelete) {
         if (e.key == Key::Ok) {
-            removeSelected();
+            if (const models::Task* t = selectedTask()) taskStore.remove(t->id);
             _mode = Mode::List;
             requestRedraw();
         } else if (e.key == Key::Back) {
@@ -223,34 +177,25 @@ void TasksApp::onKey(const KeyEvent& e) {
     }
 
     // Modo lista
-    if (_nav.onKey(e, _count)) {
+    if (_nav.onKey(e, taskStore.count())) {
         requestRedraw();
         return;
     }
     switch (e.key) {
         case Key::Ok:
-            if (models::Task* t = selectedTask()) {
-                t->flags ^= models::EVT_DONE;   // alternar hecho/pendiente
-                rebuildOrder();
-                markDirty();
-                requestRedraw();
-            }
+            if (const models::Task* t = selectedTask()) taskStore.toggleDone(t->id);
             break;
         case Key::Char:
-            if (e.ch == 'n' && _count < MAX_TASKS) {
+            if (e.ch == 'n') {
                 _input.clear();
                 _input.maxLen = (int)sizeof(models::Task{}.title) - 1;
                 _mode = Mode::NewTask;
                 requestRedraw();
-            } else if (e.ch == 'd' && _count > 0) {
+            } else if (e.ch == 'd' && taskStore.count() > 0) {
                 _mode = Mode::ConfirmDelete;
                 requestRedraw();
             } else if (e.ch == 'p') {
-                if (models::Task* t = selectedTask()) {
-                    t->priority = (t->priority + 1) % 3;   // baja→media→alta
-                    markDirty();
-                    requestRedraw();
-                }
+                if (const models::Task* t = selectedTask()) taskStore.cyclePriority(t->id);
             }
             break;
         case Key::Back:
@@ -259,4 +204,5 @@ void TasksApp::onKey(const KeyEvent& e) {
         default:
             break;
     }
+    // Las mutaciones suben revision(); update() reordena y repinta.
 }

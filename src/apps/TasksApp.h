@@ -4,7 +4,8 @@
 #include "../ui/widgets/ListNav.h"
 #include "../ui/widgets/TextField.h"
 
-// Lista de tareas con persistencia en microSD.
+// Cara en pantalla del TaskStore (los datos y su persistencia viven allí;
+// la WebUI es el otro cliente del mismo servicio).
 // Teclas: [n] nueva  [d] borrar  [p] prioridad  [ENTER] hecha/pendiente
 class TasksApp : public App {
 public:
@@ -12,7 +13,6 @@ public:
     const char* const* icon() const override;
 
     void onEnter() override;
-    void onExit() override;
     void update(uint32_t dtMs) override;
     void draw(M5Canvas& c) override;
     void onKey(const KeyEvent& e) override;
@@ -20,30 +20,18 @@ public:
 
 private:
     enum class Mode : uint8_t { List, NewTask, ConfirmDelete };
-    static constexpr int MAX_TASKS = 64;
 
     void rebuildOrder();          // pendientes arriba, hechas abajo
-    void markDirty();             // programa un guardado con debounce
-    void saveNow();
-    void addTask(const char* title);
-    void removeSelected();
-    models::Task* selectedTask();
+    const models::Task* selectedTask();
 
     void drawList(M5Canvas& c);
     void drawNewTask(M5Canvas& c);
     void drawConfirmDelete(M5Canvas& c);
 
     Mode _mode = Mode::List;
-    models::Task _tasks[MAX_TASKS];
-    int _count = 0;
-    int _order[MAX_TASKS];        // índices en orden de presentación
+    int  _order[64];              // índices del store en orden de presentación
+    uint32_t _lastRev = 0;        // última revision() del store que pintamos
 
     ListNav   _nav;
     TextField _input;
-
-    uint32_t _nextId = 1;
-    bool     _loaded = false;     // las tareas se cargan una sola vez
-    bool     _corrupt = false;    // tasks.json ilegible
-    bool     _dirtySave = false;
-    uint32_t _saveAt = 0;
 };

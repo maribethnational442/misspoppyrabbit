@@ -1,8 +1,11 @@
 #include "PomodoroApp.h"
 #include "../core/AppManager.h"
-#include "../core/Sound.h"
+#include "../core/PomodoroService.h"
 #include "../ui/Theme.h"
 #include "../ui/assets/Icons.h"
+
+using Phase = PomodoroService::Phase;
+using Run   = PomodoroService::Run;
 
 namespace {
 // Centro y radios del anillo (mitad izquierda de la pantalla)
@@ -32,48 +35,17 @@ void drawProgressRing(M5Canvas& c, float progress, uint16_t color) {
 
 const char* const* PomodoroApp::icon() const { return icons::POMODORO; }
 
-uint32_t PomodoroApp::phaseTotalMs() const {
-    return ((_phase == Phase::Work) ? _workMin : _breakMin) * 60000u;
-}
-
-uint32_t PomodoroApp::remainingMs() const {
-    switch (_run) {
-        case Run::Running: {
-            const uint32_t now = millis();
-            return (now >= _endAt) ? 0 : _endAt - now;
-        }
-        case Run::Paused:  return _pausedRemain;
-        case Run::Ready:   return phaseTotalMs();
-        default:           return 0;
-    }
-}
-
-void PomodoroApp::startPhase() {
-    _endAt = millis() + remainingMs();   // desde Ready arranca completo; desde Paused, lo restante
-    _run = Run::Running;
-    sound::click();
-}
-
-void PomodoroApp::finishPhase() {
-    _run = Run::Finished;
-    if (_phase == Phase::Work) {
-        ++_todayCount;
-        sound::workDone();
-    } else {
-        sound::breakDone();
-    }
-}
-
 void PomodoroApp::update(uint32_t dtMs) {
     (void)dtMs;
-    if (_run == Run::Running) {
-        if (remainingMs() == 0) {
-            finishPhase();
-            requestRedraw();
-            return;
-        }
-        // Repintar solo cuando cambia el segundo mostrado
-        const int sec = (int)(remainingMs() / 1000);
+    // Repintar si el servicio cambió de estado (incluso por un comando web)
+    if (pomodoroService.revision() != _lastRev) {
+        _lastRev = pomodoroService.revision();
+        requestRedraw();
+        return;
+    }
+    // ...o si cambió el segundo visible del contador
+    if (pomodoroService.run() == Run::Running) {
+        const int sec = (int)(pomodoroService.remainingMs() / 1000);
         if (sec != _lastShownSec) {
             _lastShownSec = sec;
             requestRedraw();
@@ -83,15 +55,16 @@ void PomodoroApp::update(uint32_t dtMs) {
 
 void PomodoroApp::draw(M5Canvas& c) {
     using namespace theme;
-    const bool work = (_phase == Phase::Work);
+    const bool work = (pomodoroService.phase() == Phase::Work);
     const uint16_t phaseCol = work ? POPPY : STEM;
+    const Run run = pomodoroService.run();
 
     // Anillo: se va VACIANDO con el tiempo (lleno = todo por delante)
-    const float progress = (float)remainingMs() / (float)phaseTotalMs();
+    const float progress = (float)pomodoroService.remainingMs() / (float)pomodoroService.totalMs();
     drawProgressRing(c, progress, phaseCol);
 
     // Tiempo restante en el centro
-    const uint32_t rem = remainingMs();
+    const uint32_t rem = pomodoroService.remainingMs();
     char buf[8];
     snprintf(buf, sizeof(buf), "%02u:%02u", (unsigned)(rem / 60000), (unsigned)((rem / 1000) % 60));
     c.setFont(&fonts::Font0);
@@ -108,7 +81,7 @@ void PomodoroApp::draw(M5Canvas& c) {
 
     c.setTextSize(1);
     c.setTextColor(GRAY);
-    switch (_run) {
+    switch (run) {
         case Run::Ready:    c.drawString("Listo para empezar", PANEL_X, 48); break;
         case Run::Running:  c.drawString("En marcha...", PANEL_X, 48); break;
         case Run::Paused:   c.drawString("En pausa", PANEL_X, 48); break;
@@ -119,16 +92,16 @@ void PomodoroApp::draw(M5Canvas& c) {
     }
 
     char line[32];
-    snprintf(line, sizeof(line), "Hoy: %d pomodoros", _todayCount);
+    snprintf(line, sizeof(line), "Hoy: %d pomodoros", pomodoroService.todayCount());
     c.setTextColor(STEM);
     c.drawString(line, PANEL_X, 64);
 
     c.setTextColor(DARKGRAY);
-    if (_run == Run::Ready && work) {
-        snprintf(line, sizeof(line), ", / duracion: %d min", _workMin);
+    if (run == Run::Ready && work) {
+        snprintf(line, sizeof(line), ", / duracion: %d min", pomodoroService.workMin());
         c.drawString(line, PANEL_X, 84);
     }
-    switch (_run) {
+    switch (run) {
         case Run::Ready:    c.drawString("ENTER: empezar", PANEL_X, 96); break;
         case Run::Running:  c.drawString("ENTER: pausar", PANEL_X, 96); break;
         case Run::Paused:   c.drawString("ENTER: seguir", PANEL_X, 96); break;
@@ -140,54 +113,22 @@ void PomodoroApp::draw(M5Canvas& c) {
 void PomodoroApp::onKey(const KeyEvent& e) {
     switch (e.key) {
         case Key::Ok:
-            switch (_run) {
-                case Run::Ready:
-                    startPhase();
-                    break;
-                case Run::Running:
-                    _pausedRemain = remainingMs();
-                    _run = Run::Paused;
-                    sound::click();
-                    break;
-                case Run::Paused:
-                    startPhase();   // reanuda con lo que quedaba
-                    break;
-                case Run::Finished:
-                    // Pasar al siguiente tramo y arrancarlo directamente
-                    _phase = (_phase == Phase::Work) ? Phase::Break : Phase::Work;
-                    _run = Run::Ready;
-                    startPhase();
-                    break;
-            }
-            requestRedraw();
+            pomodoroService.primaryAction();
             break;
-
         case Key::Left:
-            if (_run == Run::Ready && _phase == Phase::Work && _workMin > 5) {
-                _workMin -= 5;
-                requestRedraw();
-            }
+            pomodoroService.adjustWork(-5);
             break;
         case Key::Right:
-            if (_run == Run::Ready && _phase == Phase::Work && _workMin < 60) {
-                _workMin += 5;
-                requestRedraw();
-            }
+            pomodoroService.adjustWork(+5);
             break;
-
         case Key::Char:
-            if (e.ch == 'r') {
-                _phase = Phase::Work;
-                _run = Run::Ready;
-                requestRedraw();
-            }
+            if (e.ch == 'r') pomodoroService.reset();
             break;
-
         case Key::Back:
-            appManager.goBack();   // el temporizador sigue: estado estático
+            appManager.goBack();
             break;
-
         default:
             break;
     }
+    // El servicio sube revision() con cada cambio; update() repintará.
 }
