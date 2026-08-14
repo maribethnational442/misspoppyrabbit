@@ -69,6 +69,29 @@
   #empty { color: var(--gray); font-size: 13px; padding: 8px 0; }
 
   footer { color: var(--gray); font-size: 11px; margin-top: 16px; display: flex; gap: 16px; flex-wrap: wrap; }
+
+  /* Agenda */
+  #cal-legend { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .cal-chip { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--gray);
+              border: 1px solid var(--darkgray); border-radius: 10px; padding: 3px 10px; cursor: pointer; }
+  .cal-chip .dot { width: 10px; height: 10px; border-radius: 3px; }
+  #week-strip { display: flex; gap: 4px; margin-bottom: 10px; }
+  .wday { flex: 1; text-align: center; padding: 6px 2px; border: 1px solid var(--darkgray);
+          border-radius: 6px; cursor: pointer; font-size: 12px; color: var(--gray); }
+  .wday.sel { border-color: var(--poppy); color: var(--fg); }
+  .wday.today { color: var(--poppy); }
+  .wday .dots { display: flex; gap: 2px; justify-content: center; margin-top: 3px; min-height: 4px; }
+  .wday .dots i { width: 4px; height: 4px; border-radius: 50%; display: block; }
+  #events li { gap: 8px; }
+  #events .bar { width: 4px; align-self: stretch; border-radius: 2px; flex: none; }
+  #events .time { color: var(--gray); font-size: 12px; white-space: nowrap; }
+  #ev-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  #ev-form input, #ev-form select {
+    background: var(--bg); color: var(--fg); border: 1px solid var(--darkgray);
+    border-radius: 6px; padding: 7px; font-family: inherit;
+  }
+  #ev-form input:focus, #ev-form select:focus { outline: none; border-color: var(--poppy); }
+  #ev-form .full { grid-column: 1 / -1; }
 </style>
 </head>
 <body>
@@ -93,6 +116,30 @@
     <button id="pomo-reset" onclick="post('/api/pomodoro/reset')">Reset</button>
     <div id="pomo-bar"><div id="pomo-fill"></div></div>
   </div>
+</div>
+
+<div class="card">
+  <h2>AGENDA</h2>
+  <div id="cal-legend"></div>
+  <div id="week-strip"></div>
+  <ul id="events"></ul>
+  <div id="ev-empty" hidden>No events.</div>
+  <button id="ev-add" style="margin-top:10px" onclick="openForm()">+ Event</button>
+  <form id="ev-form" hidden onsubmit="return saveEvent()">
+    <input class="full" id="ev-title" maxlength="47" placeholder="Title..." required>
+    <input id="ev-date" type="date" required>
+    <input id="ev-time" type="time" required>
+    <select id="ev-dur">
+      <option value="30">30 min</option>
+      <option value="60" selected>60 min</option>
+      <option value="90">90 min</option>
+      <option value="120">120 min</option>
+    </select>
+    <select id="ev-cal"></select>
+    <input type="hidden" id="ev-id" value="0">
+    <button type="submit" id="ev-save">Save</button>
+    <button type="button" id="ev-cancel" onclick="closeForm()">Cancel</button>
+  </form>
 </div>
 
 <div class="card">
@@ -149,12 +196,16 @@ const I18N = {
         empty: "No tasks. The rabbit is proud of you.", confirmDel: "Delete task?",
         work: "WORK", brk: "BREAK", today: "Today", prio: ["low", "med", "high"],
         btn: { ready: "Start", running: "Pause", paused: "Resume", finished: "Next" },
-        batt: "battery", ram: "free RAM", up: "uptime" },
+        batt: "battery", ram: "free RAM", up: "uptime",
+        evAdd: "+ Event", evEmpty: "No events this day.", evSave: "Save", evCancel: "Cancel",
+        evTitle: "Title...", evConfirmDel: "Delete event?", renamePrompt: "Calendar name:" },
   es: { tasks: "TAREAS", reset: "Reiniciar", create: "Crear", placeholder: "Nueva tarea...",
         empty: "Sin tareas. El conejo esta orgulloso de ti.", confirmDel: "Borrar tarea?",
         work: "TRABAJO", brk: "DESCANSO", today: "Hoy", prio: ["baja", "media", "alta"],
         btn: { ready: "Iniciar", running: "Pausar", paused: "Seguir", finished: "Siguiente" },
-        batt: "bateria", ram: "RAM libre", up: "uptime" },
+        batt: "bateria", ram: "RAM libre", up: "uptime",
+        evAdd: "+ Evento", evEmpty: "Sin eventos este dia.", evSave: "Guardar", evCancel: "Cancelar",
+        evTitle: "Titulo...", evConfirmDel: "Borrar evento?", renamePrompt: "Nombre del calendario:" },
 };
 let LANG = "en";
 const T = () => I18N[LANG];
@@ -166,8 +217,13 @@ function applyLang() {
   $("pomo-reset").textContent = T().reset;
   $("btn-create").textContent = T().create;
   $("title").placeholder = T().placeholder;
+  $("ev-add").textContent = T().evAdd;
+  $("ev-save").textContent = T().evSave;
+  $("ev-cancel").textContent = T().evCancel;
+  $("ev-title").placeholder = T().evTitle;
   renderTasks(lastTasks);
   if (lastPomo) renderPomo(lastPomo);
+  renderAgenda();
 }
 
 async function post(url) { await fetch(url, { method: "POST" }); }
@@ -215,6 +271,106 @@ function renderPomo(p) {
   $("pomo-btn").textContent = T().btn[p.run];
 }
 
+// ---------------- Agenda ----------------
+const CAL_HEX = ["#E63946", "#6A994E", "#E9C46A", "#5FA8D3"];
+let agenda = { calendars: [], events: [] };
+let selDay = midnight(new Date());
+
+function midnight(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+const DAY_MS = 86400000;
+
+function renderAgenda() {
+  // Leyenda de calendarios (clic para renombrar)
+  $("cal-legend").innerHTML = "";
+  for (const c of agenda.calendars) {
+    const chip = document.createElement("div");
+    chip.className = "cal-chip";
+    chip.innerHTML = `<span class="dot" style="background:${CAL_HEX[c.id % 4]}"></span>`;
+    chip.append(c.name);
+    chip.onclick = () => {
+      const name = prompt(T().renamePrompt, c.name);
+      if (name) post(`/api/calendars/rename?id=${c.id}&name=${encodeURIComponent(name)}`);
+    };
+    $("cal-legend").appendChild(chip);
+  }
+
+  // Tira de la semana (lunes a domingo de la semana del día elegido)
+  const monday = new Date(selDay.getTime() - ((selDay.getDay() + 6) % 7) * DAY_MS);
+  const today = midnight(new Date());
+  $("week-strip").innerHTML = "";
+  const DL = { en: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+               es: ["Lun","Mar","Mie","Jue","Vie","Sab","Dom"] }[LANG];
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(monday.getTime() + i * DAY_MS);
+    const btn = document.createElement("div");
+    btn.className = "wday" + (day.getTime() === selDay.getTime() ? " sel" : "")
+                           + (day.getTime() === today.getTime() ? " today" : "");
+    const dayEvs = eventsOf(day);
+    btn.innerHTML = `${DL[i]} ${day.getDate()}<div class="dots">` +
+      dayEvs.slice(0, 4).map(e => `<i style="background:${CAL_HEX[e.cal % 4]}"></i>`).join("") +
+      `</div>`;
+    btn.onclick = () => { selDay = day; renderAgenda(); };
+    $("week-strip").appendChild(btn);
+  }
+
+  // Lista del día
+  const ul = $("events");
+  ul.innerHTML = "";
+  const evs = eventsOf(selDay).sort((a, b) => a.start - b.start);
+  for (const e of evs) {
+    const li = document.createElement("li");
+    const t0 = new Date(e.start * 1000), t1 = new Date(e.end * 1000);
+    const hm = (d) => d.toTimeString().slice(0, 5);
+    li.innerHTML =
+      `<span class="bar" style="background:${CAL_HEX[e.cal % 4]}"></span>` +
+      `<span class="time">${hm(t0)}-${hm(t1)}</span>` +
+      `<span class="title"></span>` +
+      `<span class="del" onclick="editEvent(${e.id})" title="edit">&#9998;</span>` +
+      `<span class="del" onclick="if(confirm('${T().evConfirmDel}'))post('/api/events/delete?id=${e.id}')">&times;</span>`;
+    li.querySelector(".title").textContent = e.title;
+    ul.appendChild(li);
+  }
+  $("ev-empty").textContent = T().evEmpty;
+  $("ev-empty").hidden = evs.length > 0;
+}
+
+function eventsOf(day) {
+  const a = day.getTime() / 1000, b = a + 86400;
+  return agenda.events.filter(e => e.start >= a && e.start < b);
+}
+
+function openForm(ev) {
+  $("ev-form").hidden = false;
+  $("ev-add").hidden = true;
+  $("ev-id").value = ev ? ev.id : 0;
+  $("ev-title").value = ev ? ev.title : "";
+  const start = ev ? new Date(ev.start * 1000) : new Date(selDay.getTime() + 9 * 3600000);
+  $("ev-date").value = start.toISOString() && new Date(start.getTime() - start.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  $("ev-time").value = start.toTimeString().slice(0, 5);
+  $("ev-dur").value = ev ? String(Math.round((ev.end - ev.start) / 60)) : "60";
+  const sel = $("ev-cal");
+  sel.innerHTML = agenda.calendars.map(c => `<option value="${c.id}"></option>`).join("");
+  agenda.calendars.forEach((c, i) => sel.options[i].textContent = c.name);
+  sel.value = ev ? String(ev.cal) : "0";
+  $("ev-title").focus();
+}
+function closeForm() { $("ev-form").hidden = true; $("ev-add").hidden = false; }
+function editEvent(id) {
+  const ev = agenda.events.find(e => e.id === id);
+  if (ev) openForm(ev);
+}
+function saveEvent() {
+  const start = new Date(`${$("ev-date").value}T${$("ev-time").value}`).getTime() / 1000;
+  const end = start + parseInt($("ev-dur").value, 10) * 60;
+  const q = `title=${encodeURIComponent($("ev-title").value.trim())}` +
+            `&start=${start}&end=${end}&cal=${$("ev-cal").value}` +
+            ($("ev-id").value !== "0" ? `&id=${$("ev-id").value}` : "");
+  fetch("/api/events?" + q, { method: "POST" });
+  selDay = midnight(new Date(start * 1000));
+  closeForm();
+  return false;
+}
+
 async function refreshStatus() {
   try {
     const s = await (await fetch("/api/status")).json();
@@ -240,12 +396,15 @@ function connectWS() {
     const msg = JSON.parse(ev.data);
     if (msg.type === "tasks") renderTasks(msg.tasks);
     if (msg.type === "pomo") renderPomo(msg.pomo);
+    if (msg.type === "agenda") { agenda = msg.agenda; renderAgenda(); }
   };
 }
 
 (async function init() {
   renderTasks(await (await fetch("/api/tasks")).json());
   renderPomo(await (await fetch("/api/pomodoro")).json());
+  agenda = await (await fetch("/api/events")).json();
+  applyLang();          // pinta agenda + textos con el idioma por defecto
   refreshStatus();
   setInterval(refreshStatus, 10000);
   connectWS();
