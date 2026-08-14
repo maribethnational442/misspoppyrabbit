@@ -17,11 +17,21 @@ constexpr int MASCOT_Y = 34;
 constexpr int MASCOT_SCALE = 3; // 16×16 → 48×48 px
 
 int cursorTargetY(int sel) { return LIST_Y + sel * ROW_H; }
+
+// Prop que el conejo "presenta" por item. MISMO ORDEN que el registro de
+// apps en main.cpp (Agenda, Tareas, Pomodoro, Settings, Reloj, About).
+const char* const* const PROPS[] = {
+    sprites::PROP_AGENDA, sprites::PROP_TASKS, sprites::PROP_POMODORO,
+    sprites::PROP_SETTINGS, sprites::PROP_CLOCK, sprites::PROP_ABOUT,
+};
+constexpr int NUM_PROPS = sizeof(PROPS) / sizeof(PROPS[0]);
+constexpr uint32_t REACT_MS = 400;   // duración de la reacción completa
 }
 
 void LauncherApp::onEnter() {
     // Primer enter: el cursor nace ya en su sitio, sin animación de entrada.
     if (_cursorY < 0) _cursorY = cursorTargetY(_sel);
+    _reactT = 0;   // saluda presentando el prop del item actual
 }
 
 void LauncherApp::update(uint32_t dtMs) {
@@ -37,6 +47,13 @@ void LauncherApp::update(uint32_t dtMs) {
         _cursorY += step;
         if ((diff > 0 && _cursorY > target) || (diff < 0 && _cursorY < target))
             _cursorY = target;
+        requestRedraw();
+    }
+
+    // --- Reacción al cambiar de item: mientras dura, repintamos cada frame
+    // (el prop rebota y el conejo despliega las orejas)
+    if (_reactT < REACT_MS) {
+        _reactT += dtMs;
         requestRedraw();
     }
 
@@ -73,11 +90,20 @@ void LauncherApp::draw(M5Canvas& c) {
         c.drawString(app->name(), LIST_X + 30, rowY + (ROW_H - 2) / 2);
     }
 
-    // Mascota + nombre del OS a la derecha
+    // Mascota + nombre del OS a la derecha. Durante la reacción, orejas
+    // desplegadas; el resto del tiempo, el ciclo normal de reposo.
     const char* const* mascot =
-        (_mascotFrame == 1) ? sprites::RABBIT_BLINK :
-        (_mascotFrame == 2) ? sprites::RABBIT_TWITCH : sprites::RABBIT_IDLE;
+        (_reactT < 200)       ? sprites::RABBIT_PERK :
+        (_mascotFrame == 1)   ? sprites::RABBIT_BLINK :
+        (_mascotFrame == 2)   ? sprites::RABBIT_TWITCH : sprites::RABBIT_IDLE;
     pixelart::draw(c, mascot, sprites::RABBIT_H, MASCOT_X, MASCOT_Y, MASCOT_SCALE);
+
+    // Prop del item seleccionado, con botecito al aparecer (cae de -6px a 0)
+    if (_sel < NUM_PROPS) {
+        const int bounce = (_reactT < 300) ? -(int)((300 - _reactT) / 50) : 0;
+        pixelart::draw(c, PROPS[_sel], sprites::PROP_H,
+                       MASCOT_X - 22, MASCOT_Y + 14 + bounce, 2);
+    }
 
     c.setTextDatum(textdatum_t::top_center);
     c.setTextColor(POPPY);
@@ -100,10 +126,12 @@ void LauncherApp::onKey(const KeyEvent& e) {
     switch (e.key) {
         case Key::Up:
             _sel = (_sel + n - 1) % n;   // con vuelta arriba↔abajo
+            _reactT = 0;                 // el conejo reacciona al item nuevo
             requestRedraw();
             break;
         case Key::Down:
             _sel = (_sel + 1) % n;
+            _reactT = 0;
             requestRedraw();
             break;
         case Key::Ok:

@@ -72,4 +72,95 @@ static const char* const RABBIT_TWITCH[RABBIT_H] = {
     "                ",
 };
 
+// Reacción del launcher: orejas desplegadas = "¡atención!". Se muestra un
+// instante al cambiar de item en el menú.
+static const char* const RABBIT_PERK[RABBIT_H] = {
+    " ##        ##   ",
+    "  ##      ##    ",
+    "  ###    ###    ",
+    "  ####  ####    ",
+    "  ####  #### RR ",
+    "  ##########RRRR",
+    " ###########RRRR",
+    " ##  ######  RR ",
+    " ##  ######  G  ",
+    " ############G  ",
+    " ######RR#####  ",
+    "  #####RR####   ",
+    "  ###########   ",
+    "   #########    ",
+    "    #######     ",
+    "                ",
+};
+
+// --- Props del launcher: objeto 8×8 que el conejo "presenta" según el item
+// seleccionado. Mismo formato editable que todo lo demás. RAM: cero (flash).
+constexpr int PROP_H = 8;
+
+static const char* const PROP_AGENDA[PROP_H] = {
+    "RRRRRRRR",
+    "#      #",
+    "# # # ##",
+    "#      #",
+    "# # # ##",
+    "#      #",
+    "########",
+    "        ",
+};
+
+static const char* const PROP_TASKS[PROP_H] = {
+    "      GG",
+    "     GGG",
+    "GG  GGG ",
+    "GGGGGG  ",
+    " GGGG   ",
+    "  GG    ",
+    "        ",
+    "        ",
+};
+
+static const char* const PROP_POMODORO[PROP_H] = {
+    "   G    ",
+    "  GGG   ",
+    " RRRRRR ",
+    "RRRRRRRR",
+    "RRRRRRRR",
+    "RRRRRRRR",
+    " RRRRRR ",
+    "  RRRR  ",
+};
+
+static const char* const PROP_SETTINGS[PROP_H] = {
+    "   ##   ",
+    " # ## # ",
+    " ###### ",
+    "###  ###",
+    "###  ###",
+    " ###### ",
+    " # ## # ",
+    "   ##   ",
+};
+
+static const char* const PROP_CLOCK[PROP_H] = {
+    "  ####  ",
+    " #    # ",
+    "#   #  #",
+    "#   #  #",
+    "#   ## #",
+    " #    # ",
+    "  ####  ",
+    "        ",
+};
+
+static const char* const PROP_ABOUT[PROP_H] = {
+    " RR RR  ",
+    "RRRRRRR ",
+    "RRR-RRR ",
+    " RRRRR  ",
+    "   G    ",
+    "   G G  ",
+    "   GG   ",
+    "        ",
+};
+
 } // namespace sprites

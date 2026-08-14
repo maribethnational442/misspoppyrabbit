@@ -17,4 +17,5 @@ private:
     float    _cursorY = -1;     // posición actual del cursor (animada)
     uint32_t _mascotT = 0;      // reloj de la animación de la mascota
     int      _mascotFrame = 0;
+    uint32_t _reactT = 9999;    // ms desde el último cambio de selección
 };

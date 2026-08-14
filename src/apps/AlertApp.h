@@ -14,6 +14,7 @@ public:
     void update(uint32_t dtMs) override;
     void draw(M5Canvas& c) override;
     void onKey(const KeyEvent& e) override;
+    bool preventsScreenSleep() const override { return true; }  // visible siempre
 
 private:
     Marquee _titleScroll;   // los títulos de reuniones suelen ser largos
