@@ -6,6 +6,7 @@
 StorageService storage;
 
 void StorageService::begin() {
+    _mutex = xSemaphoreCreateMutex();
     // El lector SD del Cardputer cuelga de un bus SPI propio (distinto del
     // de la pantalla), así que lo configuramos con sus pines explícitos.
     SPI.begin(config::SD_SCK, config::SD_MISO, config::SD_MOSI, config::SD_CS);
@@ -21,6 +22,7 @@ void StorageService::begin() {
 
 bool StorageService::atomicWrite(const char* path, std::function<bool(File&)> writer) {
     if (!_mounted) return false;
+    SdLock lock;
 
     char tmp[64];
     snprintf(tmp, sizeof(tmp), "%s.tmp", path);

@@ -9,6 +9,7 @@ namespace taskrepo {
 
 int load(models::Task* out, int maxTasks) {
     if (!storage.mounted()) return -1;
+    SdLock lock;
 
     File f = SD.open(config::TASKS_FILE, FILE_READ);
     if (!f) return 0;   // primera ejecución: aún no hay archivo

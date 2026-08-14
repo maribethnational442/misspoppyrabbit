@@ -43,12 +43,15 @@ void CalendarStore::begin() {
     seedCalendars();
 
     if (!storage.mounted()) return;
-    File f = SD.open(config::AGENDA_FILE, FILE_READ);
-    if (!f) return;
-
     JsonDocument doc;
-    const DeserializationError err = deserializeJson(doc, f);
-    f.close();
+    DeserializationError err;
+    {
+        SdLock sdlock;
+        File f = SD.open(config::AGENDA_FILE, FILE_READ);
+        if (!f) return;
+        err = deserializeJson(doc, f);
+        f.close();
+    }
     if (err) {
         log_e("agenda.json corrupto: %s", err.c_str());
         return;
