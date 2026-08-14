@@ -71,7 +71,7 @@ void setup() {
     appManager.registerApp(&settingsApp);
     appManager.registerApp(&clockApp);
     appManager.registerApp(&aboutApp);
-    appManager.setSystemApps(&lockApp, &recorderApp);   // Fn+L / Fn+M
+    appManager.setSystemApps(&lockApp, &recorderApp, &notesApp);  // Fn+L/M/N
     appManager.launch(&launcherApp);
 }
 

@@ -60,9 +60,10 @@ void AppManager::removeFromStack(App* app) {
     }
 }
 
-void AppManager::setSystemApps(App* lockApp, App* recorderApp) {
+void AppManager::setSystemApps(App* lockApp, App* recorderApp, App* notesApp) {
     _lockApp = lockApp;
     _recApp = recorderApp;
+    _noteApp = notesApp;
 }
 
 void AppManager::lockDevice() {
@@ -141,11 +142,12 @@ void AppManager::pollKeyboard() {
     const auto st = M5Cardputer.Keyboard.keysState();
 
     // --- Combos globales Fn+tecla: ANTES que todo lo demás -------------------
-    bool fnL = false, fnM = false;
+    bool fnL = false, fnM = false, fnN = false;
     if (st.fn) {
         for (auto ch : st.word) {
             if (ch == 'l') fnL = true;
             if (ch == 'm') fnM = true;
+            if (ch == 'n') fnN = true;
         }
     }
     if (fnL && _lockApp != nullptr) {   // Fn+L: bloquear/desbloquear
@@ -160,9 +162,9 @@ void AppManager::pollKeyboard() {
     }
 
     // La tecla que despierta la pantalla se "traga": despertar no debe
-    // ejecutar acciones en la app que estaba debajo. (Excepto Fn+M, que
-    // despierta Y abre la grabadora: captura rápida hasta con pantalla off.)
-    if (_screenOff && !fnM) {
+    // ejecutar acciones en la app que estaba debajo. (Excepto Fn+M y Fn+N:
+    // capturas rápidas que despiertan Y abren, hasta con pantalla off.)
+    if (_screenOff && !fnM && !fnN) {
         wakeScreen();
         return;
     }
@@ -171,6 +173,15 @@ void AppManager::pollKeyboard() {
     if (fnM && _recApp != nullptr) {    // Fn+M: grabadora desde cualquier sitio
         wakeScreen();
         if (topApp() != _recApp) launch(_recApp);
+        return;
+    }
+    if (fnN && _noteApp != nullptr) {   // Fn+N: nota de texto nueva
+        wakeScreen();
+        if (topApp() != _noteApp) {
+            launch(_noteApp);
+            // La app abre en lista: la 'n' sintética la lleva al editor nuevo
+            dispatchKey({Key::Char, 'n'});
+        }
         return;
     }
 

@@ -13,6 +13,7 @@ Web UI served from the device · A pixel rabbit that judges your productivity
 ![device](https://img.shields.io/badge/device-Cardputer%20%2F%20Cardputer%20ADV-6A994E)
 ![framework](https://img.shields.io/badge/framework-Arduino%20%2B%20PlatformIO-ffffff)
 ![ram](https://img.shields.io/badge/PSRAM-none%20needed-2a2a2a)
+[![coffee](https://img.shields.io/badge/%E2%98%95_buy_me_a_coffee-E63946)](https://buymeacoffee.com/sebaspinto)
 
 </div>
 
@@ -55,103 +56,70 @@ That's the entire product.
 ## Features
 
 ### 📅 Multi-calendar Agenda
-Four color-coded calendars (built for juggling two jobs and multiple clients).
-Day view, week view with hour-positioned color blocks, and quick event
-creation from the device keyboard. Full event editing lives in the Web UI.
+Four color-coded calendars, built for juggling two jobs and multiple clients.
 
-### 🔔 ADHD-friendly escalating alerts
-This is the heart of the project. For every meeting:
+- Day view and week view with hour-positioned color blocks
+- `,` `/` change day · `t` today · `v` switch view · `n` quick-add
+- Full event editing, and calendar renaming, in the Web UI
 
-1. **10 minutes before** — a gentle ascending arpeggio + a banner over
-   whatever you're doing
-2. **2 minutes before** — a more urgent call
-3. **At start time** — the device asks *"Are you in this meeting?"* with a
-   blinking border and an insistent chime. Pressing `ENTER` means *"yes, I'm
-   in"* and silences it. Anything else means *"ask me again in 5 minutes"* —
-   and it will, until you confirm or the event ends.
+### 🔔 ADHD-friendly alerts
+Escalating meeting alerts designed to be impossible to ignore — the heart of the project.
 
-Melodies loop until you dismiss them. They are tone sequences (zero RAM for
-audio samples) played through a non-blocking melody engine.
+- **10 min before**: gentle arpeggio + banner over whatever you're doing
+- **2 min before**: urgent call
+- **At start**: *"Are you in this meeting?"* — `ENTER` confirms; anything else re-asks every 5 min
+- Melodies loop until dismissed; alerts wake the screen by themselves
 
 ### ❗ Reminders
-An alarm with a reason — *"Call the bank"* — not a meeting. No pre-alerts:
-one alarm at the exact time that re-fires every 5 minutes until you press
-*done*. Create them with the `r` toggle in quick-add, or a checkbox in the
-Web UI.
+An alarm with a reason — *"Call the bank"* — not a meeting.
+
+- One alarm at the exact time; re-fires every 5 min until you press *done*
+- `r` toggle in quick-add, checkbox in the Web UI
 
 ### ✅ Tasks
-Simple task list with priorities (high = poppy red), done-state with
-strikethrough, and instant persistence to microSD using atomic writes
-(a power loss can never corrupt your data).
+- `n` add · `ENTER` done · `p` priority · `d` delete
+- Atomic microSD persistence: a power loss can never corrupt your data
 
 ### 🍅 Pomodoro
-Classic work/break cycle with a giant progress ring (red for work, green for
-break), adjustable duration, daily counter and speaker chimes. The timer is a
-system service: it keeps running (and ringing) while you use other apps.
+- Giant progress ring: red work, green break · `ENTER` start/pause · `,` `/` length
+- Runs (and rings) as a background service while you use other apps
 
-### 📥 Calendar import
-Export an `.ics` from Google Calendar or Outlook and drop it into the Web UI:
-it's parsed **in your browser** (timezones, basic recurrence expansion), you
-pick a target calendar, and the events land on the device. Imports are
-idempotent — re-importing the same file never duplicates anything. The same
-[JSON API](docs/IMPORT_API.md) is open for external tools.
+### 📝 Notes — text & voice
+Quick thoughts, captured before they escape.
 
-For hands-free sync there's a companion **[Chrome extension](extension/)**:
-it fetches your calendars' secret ICS addresses in the background (every
-15m–3h) and pushes upcoming events straight to the device.
-
-### 🌐 Web UI — served from the device
-Connect the Cardputer to WiFi and open **`http://prabbit.local`** from any
-browser on your network. Manage tasks, events, calendars and the pomodoro —
-with **live sync via WebSocket** in both directions: check a task on the
-device and watch the browser update, and vice versa. The page is a single
-gzipped HTML file served from flash. Two concurrent clients max (no PSRAM,
-no mercy).
-
-### 🌅 Daily briefing
-At a configurable hour (8:00 by default, in Settings) the device wakes up
-with a friendly chime and shows you the day ahead: every event and reminder,
-with **schedule conflicts highlighted in red** — overlapping meetings are the
-first thing you see, not the surprise you find at 11:30. Shown once per day;
-if the device was off at briefing time, it greets you on power-on instead.
-
-### 📝 Notes — text and voice
-One chronological list mixing quick text notes (typed on the device or edited
-comfortably in the Web UI) and **voice memos**: WAV mono 16kHz streamed
-straight to the microSD (never buffered in RAM), with a live VU meter and a
-configurable length limit. Play them back on the device speaker or right in
-the browser. And the killer shortcut: **`Fn+M` starts recording from any
-screen** — even with the display off — and drops you back exactly where you
-were. A thought escapes in three seconds; now catching it takes two.
+- **`Fn+M`**: record a voice memo from ANY screen, even display-off
+- **`Fn+N`**: quick text note from anywhere
+- Voice: WAV streamed to microSD (never buffered in RAM), live VU meter
+- Play memos on the device speaker or right in the browser
+- Comfy text editing in the Web UI
 
 ### 🔒 Pocket lock
-**`Fn+L`** locks the device: screen off, every key swallowed. Pressing
-anything shows a brief lock screen (sleeping rabbit + clock) and goes dark
-again. Alerts still ring and display — but dismissing them requires
-unlocking first, so your pocket can never accidentally confirm you're in a
-meeting. Same combo unlocks.
+- **`Fn+L`** locks/unlocks: screen off, every key swallowed
+- Alerts still ring — but your pocket can't accidentally dismiss them
 
-### 🕐 Clock
-Big NTP-synced clock showing your next two events. After 2 minutes idle it
-switches to a **night mode**: minimum backlight, dim red `HH:MM` — a classic
-bedside clock. Any key brings it back.
+### 🌅 Daily briefing
+Your day, before it starts.
 
-### 🔋 Power saving
-The screen turns off after 2.5 minutes of inactivity (backlight is what
-drains an LCD). All services keep running; alerts wake the screen by
-themselves; the key that wakes it is swallowed so waking never triggers an
-action.
+- At a configurable hour: every event and reminder, **conflicts highlighted in red**
+- Never missed: shows on power-on if the device was off at briefing time
 
-### 🌍 English / Spanish
-Full i18n via a string catalog. Default is English; switch at
-`Settings → Language`. The Web UI follows the device language automatically.
+### 🌐 Web UI
+`http://prabbit.local` from any browser on your network — embedded in the firmware.
+
+- Tasks, agenda, notes, calendars and pomodoro with **live two-way sync** (WebSocket)
+- `.ics` import parsed in your browser; [JSON API](docs/IMPORT_API.md) for external tools
+- Auto-sync via the [Chrome extension](extension/): secret ICS feeds or passive capture
+
+### 🕐 Clock · 🔋 Power · 🌍 Languages
+- Clock shows your next two events; night mode (dim red) after 2 min idle
+- Screen off after 2.5 min; alerts wake it; the waking key never triggers actions
+- Full English/Spanish, switchable in Settings; the Web UI follows
 
 ### 🐰 The mascot
 A white pixel rabbit with a red poppy, drawn from hand-editable character-map
-sprites (each character is one pixel — edit them in
-[`PoppySprites.h`](src/ui/assets/PoppySprites.h) with no tools). She blinks,
-twitches her ears, and reacts to every launcher item with a matching
-pixel prop: a calendar, a checkmark, a tomato, a gear, a clock, a poppy.
+sprites ([`PoppySprites.h`](src/ui/assets/PoppySprites.h)) — she blinks,
+reacts to every launcher item with a matching pixel prop, and knows what
+117 means.
 
 ## Screenshots
 
@@ -228,6 +196,7 @@ Then on the device:
 | `t` / `v` | Today / toggle day-week view (agenda) |
 | `m` | New voice note (in Notes) |
 | **`Fn+M`** | **Record a voice note from anywhere** |
+| **`Fn+N`** | **New text note from anywhere** |
 | **`Fn+L`** | **Lock / unlock the device** |
 
 ## How it's built
@@ -270,7 +239,9 @@ your own rabbit.
 
 ---
 
-<div align="center">🐰🌺 <em>Built with a Cardputer, patience, a rabbit — and a poppy.</em></div>
+<div align="center">🐰🌺 <em>Built with a Cardputer, patience, a rabbit — and a poppy.</em><br><br>
+If the rabbit saved you from missing a meeting, you can
+<a href="https://buymeacoffee.com/sebaspinto">buy me a coffee</a> ☕</div>
 
 <!-- If you ever type 117 in the launcher... the rabbit knows. -->
 
