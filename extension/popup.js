@@ -62,7 +62,7 @@ function showLastSync(last) {
 
 function renderCapturedUI(captured, capturedCal) {
   const n = Object.keys(captured).length;
-  $("cap-count").textContent = `${n} events captured`;
+  $("cap-count").textContent = `${n} upcoming events captured`;
   const sel = $("cap-cal");
   sel.innerHTML = "";
   calNames.forEach((name, ci) => {
@@ -94,7 +94,7 @@ async function init() {
 
 $("cap-clear").onclick = async () => {
   await chrome.storage.local.remove("captured");
-  $("cap-count").textContent = "0 events captured";
+  $("cap-count").textContent = "0 upcoming events captured";
 };
 
 async function save() {

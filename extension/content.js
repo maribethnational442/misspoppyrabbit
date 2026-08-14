@@ -166,7 +166,10 @@ if (typeof document !== "undefined" && typeof chrome !== "undefined" && chrome.s
     }
 
     // Diagnóstico visible en la consola DevTools de la pestaña del calendario
-    console.info(`[MissPoppy v4] scan: ${ariaCands} aria-candidatos, ${chips.length} chips data-eventid, ${Object.keys(found).length} eventos parseados`);
+    const now0 = Date.now() / 1000;
+    const past = Object.values(found).filter((e) => e.start < now0 - 2 * 86400).length;
+    console.info(`[MissPoppy v4] scan: ${ariaCands} aria-candidatos, ${chips.length} chips data-eventid, ` +
+                 `${Object.keys(found).length} parseados (${past} ya pasados: se descartan)`);
     if (!Object.keys(found).length) return;
 
     const { captured = {} } = await chrome.storage.local.get("captured");
