@@ -115,6 +115,22 @@ with **schedule conflicts highlighted in red** — overlapping meetings are the
 first thing you see, not the surprise you find at 11:30. Shown once per day;
 if the device was off at briefing time, it greets you on power-on instead.
 
+### 📝 Notes — text and voice
+One chronological list mixing quick text notes (typed on the device or edited
+comfortably in the Web UI) and **voice memos**: WAV mono 16kHz streamed
+straight to the microSD (never buffered in RAM), with a live VU meter and a
+configurable length limit. Play them back on the device speaker or right in
+the browser. And the killer shortcut: **`Fn+M` starts recording from any
+screen** — even with the display off — and drops you back exactly where you
+were. A thought escapes in three seconds; now catching it takes two.
+
+### 🔒 Pocket lock
+**`Fn+L`** locks the device: screen off, every key swallowed. Pressing
+anything shows a brief lock screen (sleeping rabbit + clock) and goes dark
+again. Alerts still ring and display — but dismissing them requires
+unlocking first, so your pocket can never accidentally confirm you're in a
+meeting. Same combo unlocks.
+
 ### 🕐 Clock
 Big NTP-synced clock showing your next two events. After 2 minutes idle it
 switches to a **night mode**: minimum backlight, dim red `HH:MM` — a classic
@@ -210,6 +226,9 @@ Then on the device:
 | `c` | Cycle calendar |
 | `d` / `p` | Delete / cycle priority (tasks) |
 | `t` / `v` | Today / toggle day-week view (agenda) |
+| `m` | New voice note (in Notes) |
+| **`Fn+M`** | **Record a voice note from anywhere** |
+| **`Fn+L`** | **Lock / unlock the device** |
 
 ## How it's built
 
@@ -238,7 +257,10 @@ More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (in Spanish).
 - [x] v0.6 — Daily briefing with conflict detection, reminders, timezone
       setting, volume, data erase, power saving
 - [x] Companion [Chrome extension](extension/) that auto-syncs Google
-      Calendar/Outlook via their secret ICS feeds — no scraping, no OAuth
+      Calendar/Outlook — secret ICS feeds or passive capture from the
+      calendar tab (for corporate-locked accounts)
+- [x] v0.7 — Notes (text + voice memos with global `Fn+M` capture) and
+      pocket lock (`Fn+L`)
 
 ## Contributing
 
