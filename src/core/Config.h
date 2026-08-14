@@ -9,7 +9,7 @@ namespace config {
 
 constexpr const char* OS_NAME       = "Miss Poppy Rabbit";
 constexpr const char* OS_NAME_SHORT = "Miss P. Rabbit";   // para espacios estrechos (launcher)
-constexpr const char* OS_VERSION    = "0.6.1";
+constexpr const char* OS_VERSION    = "0.7.0";
 
 // --- Pantalla y ahorro de energía ---
 // La pantalla es IPS/LCD: lo que gasta es la RETROILUMINACIÓN, no los píxeles.
@@ -31,6 +31,7 @@ constexpr int SD_CS   = 12;
 constexpr const char* DATA_DIR    = "/mspos";
 constexpr const char* TASKS_FILE  = "/mspos/tasks.json";
 constexpr const char* AGENDA_FILE = "/mspos/agenda.json";
+constexpr const char* NOTES_DIR   = "/mspos/notes";
 
 // La zona horaria ya no vive aquí: se elige en Settings (core/TimeZones.h)
 constexpr const char* NTP_SERVER = "pool.ntp.org";
