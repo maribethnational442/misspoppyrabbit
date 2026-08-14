@@ -446,7 +446,10 @@ function icsDate(v) {
 // COUNT y EXDATE) dentro de la ventana. Devuelve null si la regla no se
 // soporta (MONTHLY/YEARLY) para poder contarla como omitida.
 function expandEvent(ev, winStart, winEnd) {
-  const dur = (ev.end || ev.start + 3600) - ev.start;
+  // Sin DTEND o con duracion cero (algunos calendarios lo emiten): 1h
+  let dur = (ev.end || ev.start + 3600) - ev.start;
+  if (dur <= 0) dur = 3600;
+  ev = { ...ev, end: ev.start + dur };
   if (!ev.rrule) {
     return (ev.start >= winStart && ev.start <= winEnd) ? [ev] : [];
   }
@@ -506,7 +509,7 @@ async function loadIcsFile(file) {
     if (ex === null) { skipped++; continue; }
     pendingImport.push(...ex);
   }
-  pendingImport = pendingImport.slice(0, 90);   // tope del store del dispositivo
+  pendingImport = pendingImport.slice(0, 150);   // margen bajo el tope del store (200)
 
   $("imp-info").textContent = pendingImport.length
       ? T().impInfo(pendingImport.length, skipped) : T().impNone;

@@ -96,6 +96,10 @@ pick a target calendar, and the events land on the device. Imports are
 idempotent — re-importing the same file never duplicates anything. The same
 [JSON API](docs/IMPORT_API.md) is open for external tools.
 
+For hands-free sync there's a companion **[Chrome extension](extension/)**:
+it fetches your calendars' secret ICS addresses in the background (every
+15m–3h) and pushes upcoming events straight to the device.
+
 ### 🌐 Web UI — served from the device
 Connect the Cardputer to WiFi and open **`http://prabbit.local`** from any
 browser on your network. Manage tasks, events, calendars and the pomodoro —
@@ -215,8 +219,10 @@ More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (in Spanish).
 - [x] v0.4 — Multi-calendar Agenda, ADHD alerts, reminders, i18n, power saving
 - [x] v0.5 — Calendar import: `.ics` files via the Web UI and
       [`POST /api/events/import`](docs/IMPORT_API.md) for external tools
-- [ ] Next — companion Chrome extension that auto-syncs Google
-      Calendar/Outlook (separate project)
+- [x] v0.6 — Daily briefing with conflict detection, reminders, timezone
+      setting, volume, data erase, power saving
+- [x] Companion [Chrome extension](extension/) that auto-syncs Google
+      Calendar/Outlook via their secret ICS feeds — no scraping, no OAuth
 
 ## Contributing
 
