@@ -9,7 +9,7 @@ namespace config {
 
 constexpr const char* OS_NAME       = "Miss Poppy Rabbit";
 constexpr const char* OS_NAME_SHORT = "Miss P. Rabbit";   // para espacios estrechos (launcher)
-constexpr const char* OS_VERSION    = "0.6.0";
+constexpr const char* OS_VERSION    = "0.6.1";
 
 // --- Pantalla y ahorro de energía ---
 // La pantalla es IPS/LCD: lo que gasta es la RETROILUMINACIÓN, no los píxeles.

@@ -1,8 +1,8 @@
 #include "WebService.h"
 #include <AsyncJson.h>
 #include <ESPmDNS.h>
-#include <LittleFS.h>
 #include <M5Cardputer.h>
+#include "../generated/webui_gz.h"
 #include "CalendarStore.h"
 #include "Config.h"
 #include "Lang.h"
@@ -49,9 +49,6 @@ uint32_t fnv1a(const char* s) {
 }
 
 void WebService::begin() {
-    if (!LittleFS.begin(true)) {   // true = formatear si está virgen
-        log_w("LittleFS no disponible: la WebUI no tendra frontend");
-    }
     // CORS abierto: la extensión de Chrome (v0.5) postea desde otro origen
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     setupRoutes();
@@ -261,8 +258,15 @@ void WebService::setupRoutes() {
         req->send(202, "application/json", "{}");
     });
 
-    // --- Estáticos: index.html.gz se sirve solo con Content-Encoding: gzip ---
-    _server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
+    // --- La WebUI vive embebida en el firmware (flash mapeada, cero RAM):
+    // web/index.html → tools/gen_webui.py → webui_gz.h. El navegador
+    // descomprime gracias al Content-Encoding.
+    _server.on("/", HTTP_GET, [](AsyncWebServerRequest* req) {
+        AsyncWebServerResponse* r =
+            req->beginResponse(200, "text/html", WEBUI_GZ, WEBUI_GZ_LEN);
+        r->addHeader("Content-Encoding", "gzip");
+        req->send(r);
+    });
 
     _server.onNotFound([](AsyncWebServerRequest* req) {
         if (req->method() == HTTP_OPTIONS) {   // preflight CORS de la extensión

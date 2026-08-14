@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Miss Poppy Rabbit — Web Installer</title>
+<script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+<style>
+  :root { --bg:#000; --fg:#fff; --poppy:#E63946; --poppy-dim:#8a222a; --stem:#6A994E; --gray:#888; --dark:#2a2a2a; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: "Courier New", monospace;
+    max-width: 640px; margin: 0 auto; padding: 32px 20px;
+    text-align: center;
+  }
+  img.logo { width: 120px; image-rendering: pixelated; }
+  h1 { font-size: 26px; letter-spacing: 2px; margin: 16px 0 6px; }
+  .tag { color: var(--gray); font-size: 13px; margin-bottom: 28px; }
+  .card {
+    border: 1px solid var(--dark); border-radius: 10px;
+    padding: 24px; margin: 18px 0; text-align: left;
+  }
+  .card h2 { font-size: 14px; color: var(--poppy); letter-spacing: 1px; margin-bottom: 12px; }
+  .card p, .card li { font-size: 13px; line-height: 1.6; color: var(--fg); }
+  .card ol { padding-left: 20px; }
+  .muted { color: var(--gray); }
+  esp-web-install-button {
+    --esp-tools-button-color: var(--bg);
+    --esp-tools-button-text-color: var(--fg);
+    --esp-tools-button-border-radius: 8px;
+  }
+  esp-web-install-button::part(button) {
+    border: 2px solid var(--poppy); padding: 12px 28px;
+    font-family: inherit; font-size: 15px; cursor: pointer;
+  }
+  .center { text-align: center; margin: 20px 0 8px; }
+  a { color: var(--stem); }
+  footer { color: var(--gray); font-size: 12px; margin-top: 28px; }
+</style>
+</head>
+<body>
+
+<img class="logo" src="assets/logo.svg" alt="Miss Poppy Rabbit — white pixel rabbit with a red poppy">
+<h1>Miss Poppy Rabbit</h1>
+<div class="tag">A fully-local pocket assistant OS for the M5Stack Cardputer — 117% local</div>
+
+<div class="card">
+  <h2>INSTALL FROM YOUR BROWSER</h2>
+  <p>Flashes the complete firmware (apps + Web UI) over USB using WebSerial.
+     Works in <strong>Chrome or Edge on desktop</strong>. Both the original
+     Cardputer and the Cardputer ADV are supported.</p>
+  <ol style="margin-top:10px">
+    <li>Plug your Cardputer in with a USB-C <em>data</em> cable</li>
+    <li>Click Install and pick the serial port (usually <span class="muted">usbmodem / COM</span>)</li>
+    <li>Wait ~1 minute. The rabbit will greet you 🐰</li>
+  </ol>
+  <div class="center">
+    <esp-web-install-button manifest="flash/manifest.json"></esp-web-install-button>
+  </div>
+  <p class="muted">If the port doesn't show up: hold the G0/BOOT key while
+     plugging the cable, then try again. Choosing "Erase device" is
+     recommended for first installs.</p>
+</div>
+
+<div class="card">
+  <h2>AFTER FLASHING</h2>
+  <ol>
+    <li>Open <strong>Settings</strong> on the device, scan and join your WiFi</li>
+    <li>Insert any FAT32 microSD card (your tasks &amp; events live there)</li>
+    <li>Visit <strong>http://prabbit.local</strong> from a browser on the same
+        network for the Web UI</li>
+    <li>Optional: install the <a href="https://github.com/SebasPinto/misspoppyrabbit/tree/main/extension">Chrome extension</a>
+        to auto-sync Google Calendar / Outlook</li>
+  </ol>
+</div>
+
+<footer>
+  <a href="https://github.com/SebasPinto/misspoppyrabbit">Source, docs &amp; README on GitHub</a><br><br>
+  🐰🌺 <em>Built with a Cardputer, patience, a rabbit — and a poppy.</em>
+</footer>
+
+</body>
+</html>

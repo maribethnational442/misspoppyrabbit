@@ -150,26 +150,42 @@ device photos coming soon.*
 |---|---|---|
 | ![Pomodoro](docs/screenshots/pomodoro.svg) | ![Clock](docs/screenshots/clock.svg) | ![Web UI](docs/screenshots/webui.svg) |
 
-## Flashing it to your Cardputer
+## Installing it on your Cardputer
 
 Works on both the **original Cardputer** and the **Cardputer ADV** — same
 binary. The [M5Cardputer library](https://github.com/m5stack/M5Cardputer)
 auto-detects the model at boot and abstracts the hardware differences
-(GPIO-matrix vs TCA8418 keyboard, NS4168 vs ES8311 audio).
+(GPIO-matrix vs TCA8418 keyboard, NS4168 vs ES8311 audio). The Web UI is
+embedded inside the firmware, so it's always a **single binary** — pick your
+favorite door:
 
-You'll need [PlatformIO](https://platformio.org/install/cli) and a USB-C
-data cable.
+### 🌐 Web installer (easiest)
+
+Open **[the installer page](https://sebaspinto.github.io/misspoppyrabbit/)**
+in Chrome or Edge on desktop, plug your Cardputer in with a USB-C data cable,
+click **Install**. Done in a minute — nothing to download or install.
+
+### 🔥 M5Burner
+
+Find **Miss Poppy Rabbit** in the Cardputer category, or burn the merged
+`misspoppyrabbit-vX.Y.Z.bin` from
+[Releases](https://github.com/SebasPinto/misspoppyrabbit/releases) at
+offset `0x0`.
+
+### 🚀 M5Launcher (install from microSD)
+
+Copy `misspoppyrabbit-vX.Y.Z-app.bin` from
+[Releases](https://github.com/SebasPinto/misspoppyrabbit/releases) to your
+microSD card and install it from the M5Launcher menu.
+
+### 🛠 From source
+
+You'll need [PlatformIO](https://platformio.org/install/cli):
 
 ```bash
-git clone <this-repo>
-cd mspos
-
-# 1. Build and flash the firmware
+git clone https://github.com/SebasPinto/misspoppyrabbit.git
+cd misspoppyrabbit
 pio run -t upload
-
-# 2. Flash the Web UI assets (LittleFS partition) — needed once, and
-#    again whenever web/index.html changes
-pio run -t uploadfs
 ```
 
 Then on the device:
