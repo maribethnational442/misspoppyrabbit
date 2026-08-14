@@ -126,20 +126,47 @@ function hashUid(s) {
 if (typeof document !== "undefined" && typeof chrome !== "undefined" && chrome.storage) {
   let pending = false;
 
+  // En el Google Calendar actual los chips de evento NO llevan aria-label:
+  // el texto accesible vive en un span oculto DENTRO del chip. Se busca el
+  // texto mas corto del subarbol que contenga fecha + rango horario.
+  function bestLabelFrom(el) {
+    let best = null;
+    for (const n of [el, ...el.querySelectorAll("*")]) {
+      const t = (n.textContent || "").replace(/\s+/g, " ").trim();
+      if (t.length < 12 || t.length > 400) continue;
+      if (!parseDate(t) || !parseTimes(t)) continue;
+      if (!best || t.length < best.length) best = t;
+    }
+    return best;
+  }
+
   async function scan() {
     pending = false;
     const found = {};
-    let candidates = 0;
-    for (const el of document.querySelectorAll("[aria-label]")) {
-      const label = el.getAttribute("aria-label");
-      if (label && label.length > 12 && /\d/.test(label)) candidates++;
-      const parsed = parseCandidate(label, el.textContent);
-      if (!parsed) continue;
+    const add = (parsed) => {
       const uid = `cap-${hashUid(parsed.title + "|" + parsed.start)}`;
       found[uid] = { uid, ...parsed };
+    };
+
+    let ariaCands = 0;
+    for (const el of document.querySelectorAll("[aria-label]")) {
+      const label = el.getAttribute("aria-label");
+      if (label && label.length > 12 && /\d/.test(label)) ariaCands++;
+      const parsed = parseCandidate(label, el.textContent);
+      if (parsed) add(parsed);
     }
+
+    // Chips de evento (Google): parsear su span de accesibilidad interno
+    const chips = document.querySelectorAll("[data-eventid]");
+    for (const el of chips) {
+      const label = bestLabelFrom(el);
+      if (!label) continue;
+      const parsed = parseCandidate(label, "");
+      if (parsed) add(parsed);
+    }
+
     // Diagnóstico visible en la consola DevTools de la pestaña del calendario
-    console.info(`[MissPoppy] scan: ${candidates} candidatos con aria-label, ${Object.keys(found).length} eventos parseados`);
+    console.info(`[MissPoppy v4] scan: ${ariaCands} aria-candidatos, ${chips.length} chips data-eventid, ${Object.keys(found).length} eventos parseados`);
     if (!Object.keys(found).length) return;
 
     const { captured = {} } = await chrome.storage.local.get("captured");
