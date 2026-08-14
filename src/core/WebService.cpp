@@ -99,6 +99,22 @@ void WebService::setupRoutes() {
         req->send(200, "application/json", out);
     });
 
+    // OJO al orden: ESPAsyncWebServer evalúa los handlers en orden de registro
+    // y "/api/tasks" hace match POR PREFIJO con "/api/tasks/toggle". Las rutas
+    // específicas van PRIMERO o la genérica se las traga (bug real que tuvimos).
+    _server.on("/api/tasks/toggle", HTTP_POST, [](AsyncWebServerRequest* req) {
+        const bool ok = taskStore.enqueueToggle(idParam(req));
+        req->send(ok ? 202 : 503, "application/json", "{}");
+    });
+    _server.on("/api/tasks/delete", HTTP_POST, [](AsyncWebServerRequest* req) {
+        const bool ok = taskStore.enqueueRemove(idParam(req));
+        req->send(ok ? 202 : 503, "application/json", "{}");
+    });
+    _server.on("/api/tasks/priority", HTTP_POST, [](AsyncWebServerRequest* req) {
+        const bool ok = taskStore.enqueuePriority(idParam(req));
+        req->send(ok ? 202 : 503, "application/json", "{}");
+    });
+
     _server.on("/api/tasks", HTTP_GET, [](AsyncWebServerRequest* req) {
         String out;
         taskStore.snapshotJson(out);
@@ -118,19 +134,6 @@ void WebService::setupRoutes() {
         const bool ok = taskStore.enqueueAdd(p->value().c_str());
         req->send(ok ? 202 : 503, "application/json",
                   ok ? "{\"queued\":true}" : "{\"error\":\"cola llena\"}");
-    });
-
-    _server.on("/api/tasks/toggle", HTTP_POST, [](AsyncWebServerRequest* req) {
-        const bool ok = taskStore.enqueueToggle(idParam(req));
-        req->send(ok ? 202 : 503, "application/json", "{}");
-    });
-    _server.on("/api/tasks/delete", HTTP_POST, [](AsyncWebServerRequest* req) {
-        const bool ok = taskStore.enqueueRemove(idParam(req));
-        req->send(ok ? 202 : 503, "application/json", "{}");
-    });
-    _server.on("/api/tasks/priority", HTTP_POST, [](AsyncWebServerRequest* req) {
-        const bool ok = taskStore.enqueuePriority(idParam(req));
-        req->send(ok ? 202 : 503, "application/json", "{}");
     });
 
     _server.on("/api/pomodoro", HTTP_GET, [this](AsyncWebServerRequest* req) {
