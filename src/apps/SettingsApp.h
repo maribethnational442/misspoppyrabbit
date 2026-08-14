@@ -3,6 +3,7 @@
 #include "../core/WifiService.h"
 #include "../ui/widgets/ListNav.h"
 #include "../ui/widgets/TextField.h"
+#include "../ui/widgets/Marquee.h"
 
 // Cara visible del WifiService: estado, escaneo de redes, conexión con
 // contraseña y "olvidar red". Dos modos internos: lista y entrada de texto.
@@ -35,6 +36,7 @@ private:
     Mode _mode = Mode::List;
     ListNav   _nav;
     TextField _pass;
+    Marquee   _headerScroll;   // la cabecera "WiFi: red (ip)" puede no caber
 
     Net _nets[MAX_NETS];
     int _netCount = 0;

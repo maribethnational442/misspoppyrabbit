@@ -18,6 +18,7 @@ void SettingsApp::onEnter() {
     _nav.reset();
     _nav.visible = 6;
     _lastState = wifiService.state();
+    _headerScroll.reset();
 }
 
 void SettingsApp::update(uint32_t dtMs) {
@@ -44,8 +45,12 @@ void SettingsApp::update(uint32_t dtMs) {
     // Repintar cuando cambia el estado del WiFi (p.ej. Conectando → Conectado)
     if (wifiService.state() != _lastState) {
         _lastState = wifiService.state();
+        _headerScroll.reset();   // texto nuevo: el scroll empieza de cero
         requestRedraw();
     }
+
+    // Marquee de la cabecera: mientras se desliza pide repintado
+    if (_mode == Mode::List && _headerScroll.tick(dtMs)) requestRedraw();
 }
 
 // Filas: [0] Buscar redes | [1] Olvidar red (si hay guardada) | [2..] redes
@@ -112,7 +117,7 @@ void SettingsApp::drawList(M5Canvas& c) {
             break;
     }
     c.setTextColor(headerCol);
-    c.drawString(header, PADDING, HEADER_Y);
+    _headerScroll.draw(c, header, PADDING, HEADER_Y, SCREEN_W - 2 * PADDING);
     c.drawFastHLine(0, LIST_Y - 4, SCREEN_W, DARKGRAY);
 
     // Lista con scroll

@@ -7,7 +7,7 @@
 namespace config {
 
 constexpr const char* OS_NAME       = "Miss Poppy Rabbit";
-constexpr const char* OS_NAME_SHORT = "Miss Poppy";   // para espacios estrechos (launcher)
+constexpr const char* OS_NAME_SHORT = "Miss P. Rabbit";   // para espacios estrechos (launcher)
 constexpr const char* OS_VERSION    = "0.3.0";
 // El hostname se queda corto a propósito: http://mspos.local es cómodo de
 // teclear. Cámbialo aquí si prefieres otro (p.ej. "poppy" → http://poppy.local).

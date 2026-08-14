@@ -80,8 +80,11 @@ void LauncherApp::draw(M5Canvas& c) {
 
     c.setTextDatum(textdatum_t::top_center);
     c.setTextColor(POPPY);
-    c.drawString(config::OS_NAME_SHORT,   // el nombre completo no cabe aqui
-                 MASCOT_X + (sprites::RABBIT_W * MASCOT_SCALE) / 2,
+    // Centrado bajo la mascota, pero sin salirse del borde derecho
+    int nameCx = MASCOT_X + (sprites::RABBIT_W * MASCOT_SCALE) / 2;
+    const int half = c.textWidth(config::OS_NAME_SHORT) / 2;
+    if (nameCx + half > SCREEN_W - 2) nameCx = SCREEN_W - 2 - half;
+    c.drawString(config::OS_NAME_SHORT, nameCx,
                  MASCOT_Y + sprites::RABBIT_H * MASCOT_SCALE + 6);
 
     // Ayuda de teclas abajo
