@@ -16,17 +16,28 @@ const MONTHS = {
   agosto: 8, septiembre: 9, octubre: 10, noviembre: 11, diciembre: 12,
 };
 
-// "October 14, 2025" | "14 de octubre de 2025" (con o sin dia de semana antes)
+// "October 14, 2025" | "August 14" (Google suele OMITIR el año) |
+// "14 de octubre de 2025" | "14 de agosto". Sin año se infiere: si la fecha
+// quedaria a mas de 2 meses en el pasado, es del año siguiente.
 function parseDate(label) {
-  let m = label.match(/([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/);
-  if (m && MONTHS[m[1].toLowerCase()]) {
-    return { y: +m[3], mo: MONTHS[m[1].toLowerCase()], d: +m[2] };
+  let y = null, mo = null, d = null;
+  for (const m of label.matchAll(/([A-Za-zÀ-ú]+)\s+(\d{1,2})(?:,?\s+(\d{4}))?/g)) {
+    const month = MONTHS[m[1].toLowerCase()];
+    if (month) { mo = month; d = +m[2]; y = m[3] ? +m[3] : null; break; }
   }
-  m = label.match(/(\d{1,2})\s+de\s+([a-zA-Záéíóú]+)(?:\s+de)?\s+(\d{4})/i);
-  if (m && MONTHS[m[2].toLowerCase()]) {
-    return { y: +m[3], mo: MONTHS[m[2].toLowerCase()], d: +m[1] };
+  if (mo === null) {
+    for (const m of label.matchAll(/(\d{1,2})\s+de\s+([a-zA-Záéíóúñ]+)(?:\s+de\s+(\d{4}))?/gi)) {
+      const month = MONTHS[m[2].toLowerCase()];
+      if (month) { mo = month; d = +m[1]; y = m[3] ? +m[3] : null; break; }
+    }
   }
-  return null;
+  if (mo === null) return null;
+  if (y === null) {
+    const now = new Date();
+    y = now.getFullYear();
+    if (new Date(y, mo - 1, d).getTime() < now.getTime() - 60 * 86400000) y += 1;
+  }
+  return { y, mo, d };
 }
 
 // Tokens de hora: "10:30", "10:30am", "10 AM", "10:30 p.m." — un numero suelto
@@ -51,11 +62,11 @@ function parseTimes(label) {
   if (tokens.length === 2) {
     const a = tokenTo24h(tokens[0]);
     const b = tokenTo24h(tokens[1]);
-    // "10 to 11am": el meridiano del segundo aplica tambien al primero
-    if (!a.hadMer && b.hadMer && a.h < 12 && b.h >= 12 && a.h + 12 > b.h - 12) {
-      const bh12 = b.h >= 12 ? b.h - 12 : b.h;
-      if (a.h <= bh12) { /* misma mitad del dia */ }
-      else a.h += 12;
+    // "2:30 – 3:20pm" = ambos PM; "11 to 1pm" = 11am; "8:30 to 12pm" = 8:30am.
+    // Regla: si el fin es PM pasada la 1pm y el inicio (en 12h) no lo supera,
+    // comparten meridiano.
+    if (!a.hadMer && b.hadMer && b.h > 12 && a.h < 12 && a.h <= b.h - 12) {
+      a.h += 12;
     }
     return { a, b };
   }
