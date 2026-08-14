@@ -56,6 +56,10 @@ const char* const EN[N] = {
     "Reminder:",
     "[ENTER] done   [`] snooze 5 min",
     "c: calendar   r: reminder",
+    // Borrado de datos
+    "> Erase all data",
+    "Erase ALL tasks, events & reminders?",
+    "WiFi, language and volume are kept.",
 };
 
 const char* const ES[N] = {
@@ -105,6 +109,10 @@ const char* const ES[N] = {
     "Recordatorio:",
     "[ENTER] hecho   [`] posponer 5 min",
     "c: calendario   r: recordatorio",
+    // Borrado de datos
+    "> Borrar todos los datos",
+    "Borrar TODAS las tareas, eventos y reminders?",
+    "WiFi, idioma y volumen se conservan.",
 };
 
 const char* const DAYS_EN[7]    = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};

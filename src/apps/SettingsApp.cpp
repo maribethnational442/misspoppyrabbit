@@ -1,6 +1,8 @@
 #include "SettingsApp.h"
 #include "../core/AppManager.h"
+#include "../core/CalendarStore.h"
 #include "../core/Sound.h"
+#include "../core/TaskStore.h"
 #include "../ui/Theme.h"
 #include "../ui/assets/Icons.h"
 #include <WiFi.h>
@@ -54,13 +56,14 @@ void SettingsApp::update(uint32_t dtMs) {
     if (_mode == Mode::List && _headerScroll.tick(dtMs)) requestRedraw();
 }
 
-// Filas: [0] Buscar redes | [1] Idioma | [2] Volumen | [3] Olvidar red | [4..] redes
+// Filas: [0] Buscar redes | [1] Idioma | [2] Volumen | [3] Borrar datos |
+//        [4] Olvidar red (si hay) | [5..] redes
 int SettingsApp::rowCount() const {
-    return 3 + (wifiService.hasCredentials() ? 1 : 0) + _netCount;
+    return 4 + (wifiService.hasCredentials() ? 1 : 0) + _netCount;
 }
 
 void SettingsApp::activateRow(int row) {
-    const int netBase = 3 + (wifiService.hasCredentials() ? 1 : 0);
+    const int netBase = 4 + (wifiService.hasCredentials() ? 1 : 0);
 
     if (row == 0) {
         if (!wifiService.scanning()) wifiService.startScan();
@@ -80,7 +83,12 @@ void SettingsApp::activateRow(int row) {
         requestRedraw();
         return;
     }
-    if (wifiService.hasCredentials() && row == 3) {
+    if (row == 3) {
+        _mode = Mode::ConfirmErase;   // acción destructiva: siempre confirmar
+        requestRedraw();
+        return;
+    }
+    if (wifiService.hasCredentials() && row == 4) {
         wifiService.forget();
         _nav.reset();
         requestRedraw();
@@ -101,7 +109,25 @@ void SettingsApp::activateRow(int row) {
 
 void SettingsApp::draw(M5Canvas& c) {
     if (_mode == Mode::Password) drawPassword(c);
-    else drawList(c);
+    else {
+        drawList(c);
+        if (_mode == Mode::ConfirmErase) drawConfirmErase(c);
+    }
+}
+
+void SettingsApp::drawConfirmErase(M5Canvas& c) {
+    using namespace theme;
+    c.fillRoundRect(10, 40, SCREEN_W - 20, 56, 5, BG);
+    c.drawRoundRect(10, 40, SCREEN_W - 20, 56, 5, POPPY);
+    c.setFont(&fonts::Font0);
+    c.setTextSize(1);
+    c.setTextDatum(textdatum_t::top_left);
+    c.setTextColor(POPPY);
+    c.drawString(tr(Str::EraseConfirm1), 18, 48);
+    c.setTextColor(GRAY);
+    c.drawString(tr(Str::EraseConfirm2), 18, 60);
+    c.setTextColor(DARKGRAY);
+    c.drawString(tr(Str::DeleteHint), 18, 80);
 }
 
 void SettingsApp::drawList(M5Canvas& c) {
@@ -135,7 +161,7 @@ void SettingsApp::drawList(M5Canvas& c) {
     c.drawFastHLine(0, LIST_Y - 4, SCREEN_W, DARKGRAY);
 
     // Lista con scroll
-    const int netBase = 3 + (wifiService.hasCredentials() ? 1 : 0);
+    const int netBase = 4 + (wifiService.hasCredentials() ? 1 : 0);
     for (int v = 0; v < _nav.visible; ++v) {
         const int row = _nav.scroll + v;
         if (row >= rowCount()) break;
@@ -153,7 +179,9 @@ void SettingsApp::drawList(M5Canvas& c) {
             snprintf(line, sizeof(line), tr(Str::LanguageRowFmt), lang::displayName());
         } else if (row == 2) {
             snprintf(line, sizeof(line), tr(Str::VolumeRowFmt), sound::volumePct());
-        } else if (wifiService.hasCredentials() && row == 3) {
+        } else if (row == 3) {
+            snprintf(line, sizeof(line), "%s", tr(Str::EraseRow));
+        } else if (wifiService.hasCredentials() && row == 4) {
             snprintf(line, sizeof(line), tr(Str::ForgetRowFmt), wifiService.ssid());
         } else {
             const Net& net = _nets[row - netBase];
@@ -187,6 +215,20 @@ void SettingsApp::drawPassword(M5Canvas& c) {
 }
 
 void SettingsApp::onKey(const KeyEvent& e) {
+    if (_mode == Mode::ConfirmErase) {
+        if (e.key == Key::Ok) {
+            taskStore.clearAll();
+            calendarStore.clearAllEvents();
+            sound::click();
+            _mode = Mode::List;
+            requestRedraw();
+        } else if (e.key == Key::Back) {
+            _mode = Mode::List;
+            requestRedraw();
+        }
+        return;
+    }
+
     if (_mode == Mode::Password) {
         if (_pass.handleKey(e)) {
             requestRedraw();

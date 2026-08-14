@@ -37,6 +37,7 @@ public:
     uint32_t revision() const { return _rev; }
 
     // --- Mutaciones desde el loop principal (la UI) ---
+    void clearAll();   // borra TODAS las tareas (opción de Settings)
     bool add(const char* title);
     bool toggleDone(uint32_t id);
     bool remove(uint32_t id);

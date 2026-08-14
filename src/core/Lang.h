@@ -40,6 +40,8 @@ enum class Str : uint8_t {
     VolumeRowFmt,
     // Reminders
     ReminderHead, ReminderHint, QuickRemToggle,
+    // Borrado de datos
+    EraseRow, EraseConfirm1, EraseConfirm2,
     COUNT
 };
 

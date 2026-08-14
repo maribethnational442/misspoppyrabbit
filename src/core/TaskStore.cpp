@@ -41,6 +41,14 @@ void TaskStore::loop() {
 
 // --- Mutaciones (siempre ejecutadas en el loop principal) -------------------
 
+void TaskStore::clearAll() {
+    {
+        Lock lock(_mutex);
+        _count = 0;
+    }
+    bump();   // persiste el archivo vacío (debounced)
+}
+
 bool TaskStore::add(const char* title) {
     if (_count >= MAX_TASKS || title == nullptr || title[0] == '\0') return false;
     {

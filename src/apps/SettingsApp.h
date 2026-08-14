@@ -20,7 +20,7 @@ public:
     bool wantsTextInput() const override { return _mode == Mode::Password; }
 
 private:
-    enum class Mode : uint8_t { List, Password };
+    enum class Mode : uint8_t { List, Password, ConfirmErase };
 
     struct Net {
         char ssid[33];
@@ -33,6 +33,7 @@ private:
     void activateRow(int row);
     void drawList(M5Canvas& c);
     void drawPassword(M5Canvas& c);
+    void drawConfirmErase(M5Canvas& c);
 
     Mode _mode = Mode::List;
     ListNav   _nav;

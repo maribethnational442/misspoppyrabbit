@@ -89,6 +89,14 @@ void CalendarStore::loop() {
 
 // --- Mutaciones (solo loop principal) ---------------------------------------
 
+void CalendarStore::clearAllEvents() {
+    {
+        Lock lock(_mutex);
+        _count = 0;   // los nombres de _cals se conservan: son configuración
+    }
+    bump();
+}
+
 bool CalendarStore::upsertEvent(const models::Event& e) {
     Lock lock(_mutex);
     if (e.id != 0) {

@@ -31,6 +31,7 @@ public:
     uint32_t revision() const                 { return _rev; }
 
     // --- Mutaciones desde el loop principal ---
+    void clearAllEvents();   // borra eventos/reminders; los calendarios quedan
     bool upsertEvent(const models::Event& e);   // id==0 crea; si existe, edita
     bool removeEvent(uint32_t id);
     bool setFlags(uint32_t id, uint8_t mask);   // OR de flags (AlertService)
