@@ -124,7 +124,19 @@
   <div id="week-strip"></div>
   <ul id="events"></ul>
   <div id="ev-empty" hidden>No events.</div>
-  <button id="ev-add" style="margin-top:10px" onclick="openForm()">+ Event</button>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button id="ev-add" onclick="openForm()">+ Event</button>
+    <button id="ev-import" onclick="document.getElementById('ics-file').click()">Import .ics</button>
+    <input type="file" id="ics-file" accept=".ics,text/calendar" hidden>
+  </div>
+  <div id="import-panel" hidden style="margin-top:10px">
+    <div id="imp-info" style="font-size:12px;color:var(--gray);margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px">
+      <select id="imp-cal" style="background:var(--bg);color:var(--fg);border:1px solid var(--darkgray);border-radius:6px;padding:7px;font-family:inherit"></select>
+      <button id="imp-go">Import</button>
+      <button id="imp-cancel" onclick="closeImport()">Cancel</button>
+    </div>
+  </div>
   <form id="ev-form" hidden onsubmit="return saveEvent()">
     <input class="full" id="ev-title" maxlength="47" placeholder="Title..." required>
     <input id="ev-date" type="date" required>
@@ -202,7 +214,11 @@ const I18N = {
         batt: "battery", ram: "free RAM", up: "uptime",
         evAdd: "+ Event", evEmpty: "No events this day.", evSave: "Save", evCancel: "Cancel",
         evTitle: "Title...", evConfirmDel: "Delete event?", renamePrompt: "Calendar name:",
-        remLabel: "Reminder (alarm with a reason, no duration)" },
+        remLabel: "Reminder (alarm with a reason, no duration)",
+        impBtn: "Import .ics", impGo: "Import", impCancel: "Cancel",
+        impInfo: (n, s) => `${n} events in the next 60 days · ${s} skipped (all-day / unsupported repeats / cancelled)`,
+        impNone: "No importable events found in that file.",
+        impDone: (q, d) => `Imported: ${q} ok${d ? `, ${d} failed` : ""}. Re-importing never duplicates.` },
   es: { tasks: "TAREAS", reset: "Reiniciar", create: "Crear", placeholder: "Nueva tarea...",
         empty: "Sin tareas. El conejo esta orgulloso de ti.", confirmDel: "Borrar tarea?",
         work: "TRABAJO", brk: "DESCANSO", today: "Hoy", prio: ["baja", "media", "alta"],
@@ -210,7 +226,11 @@ const I18N = {
         batt: "bateria", ram: "RAM libre", up: "uptime",
         evAdd: "+ Evento", evEmpty: "Sin eventos este dia.", evSave: "Guardar", evCancel: "Cancelar",
         evTitle: "Titulo...", evConfirmDel: "Borrar evento?", renamePrompt: "Nombre del calendario:",
-        remLabel: "Recordatorio (alarma con motivo, sin duracion)" },
+        remLabel: "Recordatorio (alarma con motivo, sin duracion)",
+        impBtn: "Importar .ics", impGo: "Importar", impCancel: "Cancelar",
+        impInfo: (n, s) => `${n} eventos en los proximos 60 dias · ${s} omitidos (dia completo / repeticiones no soportadas / cancelados)`,
+        impNone: "No hay eventos importables en ese archivo.",
+        impDone: (q, d) => `Importados: ${q} ok${d ? `, ${d} fallidos` : ""}. Re-importar nunca duplica.` },
 };
 let LANG = "en";
 const T = () => I18N[LANG];
@@ -227,6 +247,9 @@ function applyLang() {
   $("ev-cancel").textContent = T().evCancel;
   $("ev-title").placeholder = T().evTitle;
   $("ev-rem-label").textContent = T().remLabel;
+  $("ev-import").textContent = T().impBtn;
+  $("imp-go").textContent = T().impGo;
+  $("imp-cancel").textContent = T().impCancel;
   renderTasks(lastTasks);
   if (lastPomo) renderPomo(lastPomo);
   renderAgenda();
@@ -379,6 +402,143 @@ function saveEvent() {
   return false;
 }
 
+// ---------------- Import de .ics ----------------
+// El ICS se parsea AQUI (el navegador tiene CPU y RAM de sobra) y al
+// dispositivo solo viaja el JSON normalizado — el mismo contrato que usara
+// la extension de Chrome (ver docs/IMPORT_API.md).
+
+function parseICS(text) {
+  // "Unfold": las lineas largas del ICS continuan con espacio inicial
+  const lines = text.replace(/\r?\n[ \t]/g, "").split(/\r?\n/);
+  const events = [];
+  let cur = null;
+  for (const ln of lines) {
+    if (ln === "BEGIN:VEVENT") { cur = { exdates: [] }; continue; }
+    if (ln === "END:VEVENT") { if (cur) events.push(cur); cur = null; continue; }
+    if (!cur) continue;
+    const ci = ln.indexOf(":");
+    if (ci < 0) continue;
+    const [prop, ...params] = ln.slice(0, ci).split(";");
+    const val = ln.slice(ci + 1);
+    if (prop === "UID") cur.uid = val;
+    else if (prop === "SUMMARY")
+      cur.title = val.replace(/\\,/g, ",").replace(/\\;/g, ";").replace(/\\n/g, " ").replace(/\\\\/g, "\\");
+    else if (prop === "DTSTART") { cur.start = icsDate(val); cur.allDay = params.some(p => p === "VALUE=DATE"); }
+    else if (prop === "DTEND") cur.end = icsDate(val);
+    else if (prop === "RRULE") cur.rrule = val;
+    else if (prop === "EXDATE") cur.exdates.push(icsDate(val));
+    else if (prop === "STATUS") cur.status = val;
+  }
+  return events;
+}
+
+// 20260814T130000Z (UTC) | 20260814T130000 (con TZID: se asume la zona del
+// navegador, que normalmente coincide con la del calendario) | 20260814
+function icsDate(v) {
+  const m = v.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?(Z)?)?$/);
+  if (!m) return null;
+  const [, Y, Mo, D, h = "0", mi = "0", s = "0", z] = m;
+  return z ? Date.UTC(+Y, +Mo - 1, +D, +h, +mi, +s) / 1000
+           : new Date(+Y, +Mo - 1, +D, +h, +mi, +s).getTime() / 1000;
+}
+
+// Expande recurrencias basicas (DAILY/WEEKLY con INTERVAL, BYDAY, UNTIL,
+// COUNT y EXDATE) dentro de la ventana. Devuelve null si la regla no se
+// soporta (MONTHLY/YEARLY) para poder contarla como omitida.
+function expandEvent(ev, winStart, winEnd) {
+  const dur = (ev.end || ev.start + 3600) - ev.start;
+  if (!ev.rrule) {
+    return (ev.start >= winStart && ev.start <= winEnd) ? [ev] : [];
+  }
+  const R = Object.fromEntries(ev.rrule.split(";").map(p => p.split("=")));
+  if (R.FREQ !== "DAILY" && R.FREQ !== "WEEKLY") return null;
+  const interval = parseInt(R.INTERVAL || "1", 10);
+  const until = R.UNTIL ? icsDate(R.UNTIL) : winEnd;
+  let count = R.COUNT ? parseInt(R.COUNT, 10) : Infinity;
+  const DMAP = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
+  const bydays = R.BYDAY ? R.BYDAY.split(",").map(d => DMAP[d.slice(-2)]) : null;
+
+  const day0 = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime(); };
+  const weekStart = (d) => day0(new Date(d.getTime() - ((d.getDay() + 6) % 7) * DAY_MS));
+  const base = new Date(ev.start * 1000);
+  const out = [];
+  const d = new Date(base);
+  for (let it = 0; it < 500 && out.length < 60 && count > 0; it++) {
+    const t = d.getTime() / 1000;
+    if (t > Math.min(until, winEnd)) break;
+    let occurs;
+    if (R.FREQ === "DAILY") {
+      occurs = Math.round((day0(d) - day0(base)) / DAY_MS) % interval === 0;
+    } else {
+      const weeks = Math.round((weekStart(d) - weekStart(base)) / (7 * DAY_MS));
+      occurs = weeks % interval === 0 &&
+               (bydays ? bydays.includes(d.getDay()) : d.getDay() === base.getDay());
+    }
+    if (occurs) {
+      count--;
+      if (t >= winStart && !ev.exdates.includes(t)) {
+        out.push({ ...ev, uid: `${ev.uid}#${t}`, start: t, end: t + dur, rrule: null });
+      }
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return out;
+}
+
+let pendingImport = [];
+
+function closeImport() {
+  $("import-panel").hidden = true;
+  $("ics-file").value = "";
+  pendingImport = [];
+}
+
+async function loadIcsFile(file) {
+  const text = await file.text();
+  const now = Date.now() / 1000;
+  const winEnd = now + 60 * 86400;
+  let skipped = 0;
+  pendingImport = [];
+  for (const ev of parseICS(text)) {
+    if (!ev.uid || !ev.title || !ev.start) { skipped++; continue; }
+    if (ev.status === "CANCELLED" || ev.allDay) { skipped++; continue; }
+    const ex = expandEvent(ev, now - 3600, winEnd);
+    if (ex === null) { skipped++; continue; }
+    pendingImport.push(...ex);
+  }
+  pendingImport = pendingImport.slice(0, 90);   // tope del store del dispositivo
+
+  $("imp-info").textContent = pendingImport.length
+      ? T().impInfo(pendingImport.length, skipped) : T().impNone;
+  const sel = $("imp-cal");
+  sel.innerHTML = agenda.calendars.map(c => `<option value="${c.id}"></option>`).join("");
+  agenda.calendars.forEach((c, i) => sel.options[i].textContent = c.name);
+  $("imp-go").disabled = pendingImport.length === 0;
+  $("import-panel").hidden = false;
+}
+
+async function runImport() {
+  const cal = +$("imp-cal").value;
+  let queued = 0, dropped = 0;
+  for (let i = 0; i < pendingImport.length; i += 40) {   // en tandas: RAM del ESP32
+    const chunk = pendingImport.slice(i, i + 40).map(e => ({
+      uid: e.uid, title: e.title.slice(0, 47),
+      start: Math.round(e.start), end: Math.round(e.end),
+    }));
+    const r = await (await fetch("/api/events/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ calendarId: cal, events: chunk }),
+    })).json();
+    queued += r.queued || 0;
+    dropped += r.dropped || 0;
+  }
+  $("imp-info").textContent = T().impDone(queued, dropped);
+  pendingImport = [];
+  $("imp-go").disabled = true;
+  setTimeout(closeImport, 4000);
+}
+
 async function refreshStatus() {
   try {
     const s = await (await fetch("/api/status")).json();
@@ -409,6 +569,8 @@ function connectWS() {
 }
 
 (async function init() {
+  $("ics-file").onchange = (e) => { if (e.target.files[0]) loadIcsFile(e.target.files[0]); };
+  $("imp-go").onclick = runImport;
   renderTasks(await (await fetch("/api/tasks")).json());
   renderPomo(await (await fetch("/api/pomodoro")).json());
   agenda = await (await fetch("/api/events")).json();
