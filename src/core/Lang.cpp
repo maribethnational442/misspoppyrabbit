@@ -67,6 +67,7 @@ const char* const EN[N] = {
     "> Briefing: %02d:%02d (, / adjust)",
     "> Timezone: %s",
     "; . scroll   other key: close",
+    "Next: %s %d %s %02d:%02d",
 };
 
 const char* const ES[N] = {
@@ -127,6 +128,7 @@ const char* const ES[N] = {
     "> Resumen: %02d:%02d (, / ajustar)",
     "> Zona horaria: %s",
     "; . scroll   otra tecla: cerrar",
+    "Proximo: %s %d %s %02d:%02d",
 };
 
 const char* const DAYS_EN[7]    = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};

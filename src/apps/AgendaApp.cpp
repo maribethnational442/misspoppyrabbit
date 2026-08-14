@@ -100,6 +100,26 @@ void AgendaApp::drawDay(M5Canvas& c) {
         c.setTextSize(1);
         c.setTextColor(GRAY);
         c.drawString(tr(Str::AgendaEmptyDay), PADDING, DAY_LIST_Y + 6);
+
+        // Día vacío ≠ agenda vacía: señalar cuándo es lo próximo (evita el
+        // clásico "sincronicé y no veo nada" un viernes por la tarde)
+        const time_t now = time(nullptr);
+        const models::Event* next = nullptr;
+        for (int i = 0; i < calendarStore.count(); ++i) {
+            const models::Event& e = evs[i];
+            if (e.start <= now || (e.flags & models::EVT_DONE)) continue;
+            if (next == nullptr || e.start < next->start) next = &e;
+        }
+        if (next != nullptr) {
+            struct tm tn;
+            localtime_r(&next->start, &tn);
+            char line[48];
+            snprintf(line, sizeof(line), tr(Str::AgendaNextFmt),
+                     lang::days()[tn.tm_wday], tn.tm_mday, lang::months()[tn.tm_mon],
+                     tn.tm_hour, tn.tm_min);
+            c.setTextColor(STEM);
+            c.drawString(line, PADDING, DAY_LIST_Y + 22);
+        }
     }
 
     c.setTextSize(1);

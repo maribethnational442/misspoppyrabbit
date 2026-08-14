@@ -45,6 +45,7 @@ enum class Str : uint8_t {
     // Resumen del día y zona horaria
     BriefTitle, BriefEmpty, BriefConflictFmt, BriefRowFmt, TzRowFmt,
     BriefScrollHint,
+    AgendaNextFmt,
     COUNT
 };
 
