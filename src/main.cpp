@@ -9,6 +9,9 @@
 #include "core/AppManager.h"
 #include "core/WifiService.h"
 #include "core/StorageService.h"
+#include "core/TaskStore.h"
+#include "core/PomodoroService.h"
+#include "core/WebService.h"
 #include "ui/BootScreen.h"
 #include "apps/LauncherApp.h"
 #include "apps/TasksApp.h"
@@ -36,6 +39,8 @@ void setup() {
 
     wifiService.begin();            // no bloquea: conecta durante el boot screen
     storage.begin();                // monta la microSD (si hay)
+    taskStore.begin();              // carga las tareas desde la SD
+    webService.begin();             // rutas listas; arranca al conectar el WiFi
     showBootScreen(appManager.canvas());
 
     // Registro = lo que lista el Launcher (el propio Launcher no se registra)
@@ -49,5 +54,8 @@ void setup() {
 
 void loop() {
     wifiService.loop();
+    taskStore.loop();        // consume comandos de la web + guardado debounced
+    pomodoroService.loop();  // el temporizador corre aunque la app no esté abierta
+    webService.loop();       // broadcasts de WebSocket, arranque diferido
     appManager.tick();
 }
