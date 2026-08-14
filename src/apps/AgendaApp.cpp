@@ -112,10 +112,16 @@ void AgendaApp::drawDay(M5Canvas& c) {
 
         c.fillRect(PADDING, y, 3, DAY_ROW_H - 3, CALENDAR_COLORS[e.calendarId % 4]);
         char line[64];
-        snprintf(line, sizeof(line), "%02d:%02d-%02d:%02d %.26s",
-                 ts.tm_hour, ts.tm_min, te.tm_hour, te.tm_min, e.title);
+        if (e.flags & models::EVT_REMINDER) {
+            // Reminder: sin rango horario, con '!' de alarma
+            snprintf(line, sizeof(line), "%02d:%02d  !%.28s", ts.tm_hour, ts.tm_min, e.title);
+        } else {
+            snprintf(line, sizeof(line), "%02d:%02d-%02d:%02d %.26s",
+                     ts.tm_hour, ts.tm_min, te.tm_hour, te.tm_min, e.title);
+        }
         const bool confirmed = e.flags & models::EVT_CONFIRMED;
-        c.setTextColor(confirmed ? STEM : PRIMARY);
+        c.setTextColor(confirmed ? STEM
+                       : (e.flags & models::EVT_REMINDER) ? POPPY : PRIMARY);
         c.drawString(line, PADDING + 8, y + 2);
     }
     if (cnt > MAX_DAY_ROWS) {
@@ -218,14 +224,20 @@ void AgendaApp::drawQuickWhen(M5Canvas& c) {
     c.setTextSize(2);
     c.drawString(when, 18, 52);
 
-    // Calendario elegido con su color
+    // Calendario elegido con su color + indicador de reminder
     c.setTextSize(1);
     c.fillRect(18, 74, 8, 8, CALENDAR_COLORS[_qCal]);
     c.setTextColor(GRAY);
     c.drawString(calendarStore.calendars()[_qCal].name, 30, 74);
+    if (_qReminder) {
+        c.setTextColor(POPPY);
+        c.drawString("[!]", SCREEN_W - 46, 74);
+    }
 
     c.setTextColor(DARKGRAY);
-    c.drawString(tr(Str::QuickWhenHint), 18, 90);
+    char hints[64];
+    snprintf(hints, sizeof(hints), "%s   %s", tr(Str::QuickWhenHint), tr(Str::QuickRemToggle));
+    c.drawString(hints, 18, 90);
     c.drawString(tr(Str::QuickSaveHint), 18, 102);
 }
 
@@ -241,10 +253,10 @@ void AgendaApp::saveQuickEvent() {
     e.id = 0;   // el store asigna
     strncpy(e.title, _title.buf, sizeof(e.title) - 1);
     e.start = mktime(&t);
-    e.end = e.start + 3600;   // 1h por defecto; se afina en la WebUI
+    e.end = e.start + 3600;   // reunión de 1h, o ventana de nag del reminder
     e.calendarId = (uint8_t)_qCal;
     e.alertMinBefore = 10;
-    e.flags = 0;
+    e.flags = _qReminder ? models::EVT_REMINDER : 0;
     calendarStore.upsertEvent(e);
 
     _day = startOfDay(e.start);   // enseña el día donde quedó
@@ -280,6 +292,7 @@ void AgendaApp::onKey(const KeyEvent& e) {
                 case Key::Right: _qDayOffset = 1 - _qDayOffset; break;
                 case Key::Char:
                     if (e.ch == 'c') _qCal = (_qCal + 1) % CalendarStore::NUM_CALENDARS;
+                    else if (e.ch == 'r') _qReminder = !_qReminder;
                     break;
                 case Key::Ok:   saveQuickEvent(); break;
                 case Key::Back: _mode = Mode::Day; break;
@@ -310,6 +323,7 @@ void AgendaApp::onKey(const KeyEvent& e) {
                     } else if (e.ch == 'n') {
                         _title.clear();
                         _title.maxLen = (int)sizeof(models::Event{}.title) - 1;
+                        _qReminder = false;
                         _mode = Mode::QuickTitle;
                     } else {
                         return;

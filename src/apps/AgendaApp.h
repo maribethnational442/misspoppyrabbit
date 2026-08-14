@@ -35,9 +35,10 @@ private:
 
     // Alta rápida
     TextField _title;
-    int _qDayOffset = 0;          // 0 = hoy, 1 = mañana
-    int _qMinOfDay = 9 * 60;      // minutos desde medianoche
-    int _qCal = 0;
+    int  _qDayOffset = 0;         // 0 = hoy, 1 = mañana
+    int  _qMinOfDay = 9 * 60;     // minutos desde medianoche
+    int  _qCal = 0;
+    bool _qReminder = false;      // 'r': alarma con motivo en vez de reunión
 };
 
 extern AgendaApp agendaApp;

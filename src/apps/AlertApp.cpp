@@ -46,8 +46,10 @@ void AlertApp::draw(M5Canvas& c) {
     // Qué está pasando
     c.setTextSize(2);
     c.setTextColor(kind == AlertService::Kind::Confirm ? POPPY : PRIMARY);
+    const bool reminder = e.flags & models::EVT_REMINDER;
     const Str head = (kind == AlertService::Kind::Pre10) ? Str::AlertIn10
                    : (kind == AlertService::Kind::Pre2)  ? Str::AlertIn2
+                   : reminder                            ? Str::ReminderHead
                                                          : Str::AlertConfirm;
     _headScroll.draw(c, tr(head), 14, 28, SCREEN_W - 28, 18);
 
@@ -70,8 +72,9 @@ void AlertApp::draw(M5Canvas& c) {
     // Cómo salir
     c.setTextColor(DARKGRAY);
     c.setTextDatum(textdatum_t::bottom_left);
-    const Str hint = (kind == AlertService::Kind::Confirm) ? Str::AlertConfirmHint
-                                                           : Str::AlertDismissHint;
+    const Str hint = (kind != AlertService::Kind::Confirm) ? Str::AlertDismissHint
+                   : reminder                              ? Str::ReminderHint
+                                                           : Str::AlertConfirmHint;
     c.drawString(tr(hint), 14, SCREEN_H - 8);
 }
 

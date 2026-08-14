@@ -52,6 +52,10 @@ const char* const EN[N] = {
     "any key to dismiss",
     // Ajustes extra
     "> Volume: %d%% (, / adjust)",
+    // Reminders
+    "Reminder:",
+    "[ENTER] done   [`] snooze 5 min",
+    "r: reminder",
 };
 
 const char* const ES[N] = {
@@ -97,6 +101,10 @@ const char* const ES[N] = {
     "cualquier tecla para cerrar",
     // Ajustes extra
     "> Volumen: %d%% (, / ajustar)",
+    // Reminders
+    "Recordatorio:",
+    "[ENTER] hecho   [`] posponer 5 min",
+    "r: recordatorio",
 };
 
 const char* const DAYS_EN[7]    = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};

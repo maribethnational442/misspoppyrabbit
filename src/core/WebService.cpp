@@ -171,6 +171,10 @@ void WebService::setupRoutes() {
         e.calendarId = req->hasParam("cal")
                            ? (uint8_t)(req->getParam("cal")->value().toInt() % 4) : 0;
         e.alertMinBefore = 10;
+        if (req->hasParam("rem") && req->getParam("rem")->value() == "1") {
+            e.flags = models::EVT_REMINDER;
+            e.end = e.start + 3600;   // ventana del nag; los reminders no duran
+        }
         const bool ok = (e.end > e.start) && calendarStore.enqueueUpsert(e);
         req->send(ok ? 202 : 400, "application/json", "{}");
     });

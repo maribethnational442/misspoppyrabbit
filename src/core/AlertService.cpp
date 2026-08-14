@@ -46,6 +46,19 @@ void AlertService::loop() {
         if (e.flags & models::EVT_DONE) continue;
         if (now >= e.end) continue;                    // ya terminó
 
+        // Los reminders no tienen avisos previos: solo la alarma a su hora
+        if (e.flags & models::EVT_REMINDER) {
+            if (now >= e.start && !(e.flags & models::EVT_CONFIRMED)) {
+                time_t* nextAt = nagSlot(e.id, e.start);
+                if (nextAt != nullptr && now >= *nextAt) {
+                    *nextAt = now + NAG_EVERY_S;
+                    fire(e, Kind::Confirm);
+                    return;
+                }
+            }
+            continue;
+        }
+
         // Escalada previa al evento
         if (now < e.start) {
             const time_t toStart = e.start - now;

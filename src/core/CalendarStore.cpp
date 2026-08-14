@@ -195,6 +195,7 @@ void CalendarStore::snapshotJson(String& out) {
             o["end"]   = (uint32_t)_events[i].end;
             o["cal"]   = _events[i].calendarId;
             o["done"]  = (bool)(_events[i].flags & models::EVT_DONE);
+            o["rem"]   = (bool)(_events[i].flags & models::EVT_REMINDER);
         }
     }
     serializeJson(doc, out);

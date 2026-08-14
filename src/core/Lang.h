@@ -38,6 +38,8 @@ enum class Str : uint8_t {
     AlertIn10, AlertIn2, AlertConfirm, AlertConfirmHint, AlertDismissHint,
     // Ajustes extra
     VolumeRowFmt,
+    // Reminders
+    ReminderHead, ReminderHint, QuickRemToggle,
     COUNT
 };
 

@@ -32,6 +32,10 @@ enum EventFlags : uint8_t {
     EVT_ALERT10   = 1 << 2,   // el aviso de 10 min ya sonó
     EVT_ALERT2    = 1 << 3,   // el aviso de 2 min ya sonó
     EVT_CONFIRMED = 1 << 4,   // el usuario confirmó que está en el evento
+    // Reminder = evento puntual sin duración ("Llamar al banco"): sin avisos
+    // previos; alarma A LA HORA que insiste cada 5 min hasta marcar "hecho"
+    // (reutiliza EVT_CONFIRMED). Su end es start+1h: la ventana del nag.
+    EVT_REMINDER  = 1 << 5,
 };
 
 // Evento de agenda (v0.4) e importable desde el navegador (v0.5).
