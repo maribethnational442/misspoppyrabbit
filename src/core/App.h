@@ -2,7 +2,7 @@
 #include <M5GFX.h>
 
 // ============================================================================
-// App.h — contrato que cumple toda app de Ms P OS.
+// App.h — contrato que cumple toda app de Miss Poppy Rabbit.
 //
 // El AppManager llama estos métodos en este orden de vida:
 //   onEnter() → [ update(dt) → draw(canvas) ]* → onExit()

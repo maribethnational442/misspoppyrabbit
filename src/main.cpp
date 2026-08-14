@@ -1,5 +1,5 @@
 // ============================================================================
-// Ms P OS — punto de entrada.
+// Miss Poppy Rabbit — punto de entrada.
 // setup() arranca hardware y servicios; loop() solo delega: el trabajo real
 // vive en AppManager (UI) y WifiService (red). main.cpp es el único sitio
 // que conoce la lista concreta de apps.

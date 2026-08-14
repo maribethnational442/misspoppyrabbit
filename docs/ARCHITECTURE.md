@@ -1,4 +1,4 @@
-# Ms P OS — Arquitectura
+# Miss Poppy Rabbit — Arquitectura
 
 Firmware tipo launcher + apps para M5Stack Cardputer ADV (ESP32-S3, 512KB
 SRAM **sin PSRAM**, 8MB flash). Identidad: conejo blanco con poppy roja,

@@ -27,28 +27,30 @@ void AboutApp::draw(M5Canvas& c) {
     c.setTextDatum(textdatum_t::top_left);
     const int x = 84;
 
+    // Nombre en dos líneas: entero no cabe a este tamaño de fuente
     c.setTextSize(2);
     c.setTextColor(PRIMARY);
-    c.drawString(config::OS_NAME, x, 28);
+    c.drawString("Miss Poppy", x, 24);
+    c.drawString("Rabbit", x, 40);
 
     c.setTextSize(1);
     char line[48];
     snprintf(line, sizeof(line), "v%s", config::OS_VERSION);
     c.setTextColor(POPPY);
-    c.drawString(line, x, 48);
+    c.drawString(line, x, 58);
 
     c.setTextColor(GRAY);
-    c.drawString("M5Stack Cardputer ADV", x, 64);
-    c.drawString("ESP32-S3 @ 240MHz", x, 76);
+    c.drawString("M5Stack Cardputer ADV", x, 72);
+    c.drawString("ESP32-S3 @ 240MHz", x, 84);
 
     snprintf(line, sizeof(line), "RAM libre: %u KB", (unsigned)(ESP.getFreeHeap() / 1024));
     c.setTextColor(STEM);
-    c.drawString(line, x, 92);
+    c.drawString(line, x, 98);
 
     const uint32_t upMin = millis() / 60000;
     snprintf(line, sizeof(line), "Uptime: %uh %02um", (unsigned)(upMin / 60), (unsigned)(upMin % 60));
     c.setTextColor(GRAY);
-    c.drawString(line, x, 104);
+    c.drawString(line, x, 110);
 }
 
 void AboutApp::onKey(const KeyEvent& e) {

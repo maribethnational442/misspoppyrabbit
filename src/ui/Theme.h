@@ -2,7 +2,7 @@
 #include <cstdint>
 
 // ============================================================================
-// Theme.h — ÚNICO punto de verdad de la identidad visual de Ms P OS.
+// Theme.h — ÚNICO punto de verdad de la identidad visual de Miss Poppy Rabbit.
 // Cambia aquí un color y cambia en todo el firmware.
 // ============================================================================
 

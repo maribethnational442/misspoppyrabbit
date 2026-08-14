@@ -2,7 +2,7 @@
 #include <ESPAsyncWebServer.h>
 
 // ============================================================================
-// WebService — la WebUI de Ms P OS servida desde el propio dispositivo.
+// WebService — la WebUI de Miss Poppy Rabbit servida desde el propio dispositivo.
 //
 // * Estáticos (index.html.gz) desde LittleFS en flash, servidos comprimidos.
 // * REST: /api/status, /api/tasks (+ acciones), /api/pomodoro.

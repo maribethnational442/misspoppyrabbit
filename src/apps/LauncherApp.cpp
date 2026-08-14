@@ -80,7 +80,7 @@ void LauncherApp::draw(M5Canvas& c) {
 
     c.setTextDatum(textdatum_t::top_center);
     c.setTextColor(POPPY);
-    c.drawString(config::OS_NAME,
+    c.drawString(config::OS_NAME_SHORT,   // el nombre completo no cabe aqui
                  MASCOT_X + (sprites::RABBIT_W * MASCOT_SCALE) / 2,
                  MASCOT_Y + sprites::RABBIT_H * MASCOT_SCALE + 6);
 

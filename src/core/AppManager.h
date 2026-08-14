@@ -4,7 +4,7 @@
 #include "StatusBar.h"
 
 // ============================================================================
-// AppManager — el "kernel" de Ms P OS.
+// AppManager — el "kernel" de Miss Poppy Rabbit.
 //
 // * Mantiene una PILA de apps: launch() apila, goBack() desapila. Solo la app
 //   del tope recibe update/draw/teclas. La pila modela "volver atrás" gratis:

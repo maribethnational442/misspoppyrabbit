@@ -1,7 +1,7 @@
 #pragma once
 
 // ============================================================================
-// PoppySprites.h — la mascota de Ms P OS: conejo blanco con una poppy roja
+// PoppySprites.h — la mascota de Miss Poppy Rabbit: conejo blanco con una poppy roja
 // en la oreja derecha. 16×16 píxeles, 3 fotogramas (reposo, parpadeo,
 // oreja doblada). Edita los strings directamente para iterar el diseño:
 // ' '=transparente  '#'=blanco  'R'=poppy  'G'=tallo  '-'=gris oscuro
