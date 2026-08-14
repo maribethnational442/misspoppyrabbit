@@ -89,6 +89,13 @@ Classic work/break cycle with a giant progress ring (red for work, green for
 break), adjustable duration, daily counter and speaker chimes. The timer is a
 system service: it keeps running (and ringing) while you use other apps.
 
+### 📥 Calendar import
+Export an `.ics` from Google Calendar or Outlook and drop it into the Web UI:
+it's parsed **in your browser** (timezones, basic recurrence expansion), you
+pick a target calendar, and the events land on the device. Imports are
+idempotent — re-importing the same file never duplicates anything. The same
+[JSON API](docs/IMPORT_API.md) is open for external tools.
+
 ### 🌐 Web UI — served from the device
 Connect the Cardputer to WiFi and open **`http://prabbit.local`** from any
 browser on your network. Manage tasks, events, calendars and the pomodoro —
@@ -200,8 +207,10 @@ More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (in Spanish).
 - [x] v0.2 — Tasks + Pomodoro with microSD persistence
 - [x] v0.3 — Web UI with REST + WebSocket
 - [x] v0.4 — Multi-calendar Agenda, ADHD alerts, reminders, i18n, power saving
-- [ ] v0.5 — `POST /api/events/import`: calendar sync from a companion
-      Chrome extension
+- [x] v0.5 — Calendar import: `.ics` files via the Web UI and
+      [`POST /api/events/import`](docs/IMPORT_API.md) for external tools
+- [ ] Next — companion Chrome extension that auto-syncs Google
+      Calendar/Outlook (separate project)
 
 ## Contributing
 
