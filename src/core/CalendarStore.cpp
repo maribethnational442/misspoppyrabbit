@@ -39,7 +39,7 @@ void CalendarStore::seedCalendars() {
 
 void CalendarStore::begin() {
     _mutex = xSemaphoreCreateMutex();
-    _queue = xQueueCreate(8, sizeof(Cmd));
+    _queue = xQueueCreate(16, sizeof(Cmd));
     seedCalendars();
 
     if (!storage.mounted()) return;
@@ -94,10 +94,23 @@ bool CalendarStore::upsertEvent(const models::Event& e) {
     if (e.id != 0) {
         models::Event* dst = findById(e.id);
         if (dst != nullptr) {
-            // Editar resetea las alertas: si movieron la reunión, debe volver
-            // a avisar con el horario nuevo.
+            // Idempotencia: si nada cambió (re-import del mismo calendario),
+            // no tocamos nada — ni revision ni escritura a SD.
+            if (dst->start == e.start && dst->end == e.end &&
+                dst->calendarId == e.calendarId &&
+                strcmp(dst->title, e.title) == 0) {
+                return true;
+            }
             models::Event upd = e;
-            upd.flags &= ~(models::EVT_ALERT10 | models::EVT_ALERT2 | models::EVT_CONFIRMED);
+            if (dst->start == e.start && dst->end == e.end) {
+                // Mismo horario: conservar el estado de alertas ya disparadas
+                upd.flags |= dst->flags & (models::EVT_ALERT10 | models::EVT_ALERT2 |
+                                           models::EVT_CONFIRMED);
+            } else {
+                // Movieron la reunión: las alertas se rearman para la hora nueva
+                upd.flags &= ~(models::EVT_ALERT10 | models::EVT_ALERT2 |
+                               models::EVT_CONFIRMED);
+            }
             *dst = upd;
             bump();
             return true;
@@ -151,6 +164,14 @@ bool CalendarStore::enqueueUpsert(const models::Event& e) {
     c.op = OP_UPSERT;
     c.ev = e;
     return enqueue(c);
+}
+
+bool CalendarStore::enqueueUpsertWait(const models::Event& e, uint32_t maxWaitMs) {
+    Cmd c = {};
+    c.op = OP_UPSERT;
+    c.ev = e;
+    return _queue != nullptr &&
+           xQueueSend(_queue, &c, pdMS_TO_TICKS(maxWaitMs)) == pdTRUE;
 }
 bool CalendarStore::enqueueRemove(uint32_t id) {
     Cmd c = {};

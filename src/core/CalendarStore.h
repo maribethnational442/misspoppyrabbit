@@ -38,6 +38,9 @@ public:
 
     // --- Para los handlers web (otra tarea) ---
     bool enqueueUpsert(const models::Event& e);
+    // Variante con espera acotada: el import mete decenas de eventos y la
+    // cola es corta; esperar unos ms deja que el loop principal la drene.
+    bool enqueueUpsertWait(const models::Event& e, uint32_t maxWaitMs);
     bool enqueueRemove(uint32_t id);
     bool enqueueRename(uint8_t calId, const char* name);
 
