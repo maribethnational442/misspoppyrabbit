@@ -1,4 +1,5 @@
 #include "WebService.h"
+#include <AsyncJson.h>
 #include <ESPmDNS.h>
 #include <LittleFS.h>
 #include <M5Cardputer.h>
@@ -31,12 +32,26 @@ uint32_t idParam(AsyncWebServerRequest* req) {
     if (!req->hasParam("id")) return 0;
     return (uint32_t)req->getParam("id")->value().toInt();
 }
+
+// Hash FNV-1a de 32 bits: convierte el UID textual de un evento externo
+// ("abc123@google.com") en nuestro id numérico ESTABLE. Mismo UID → mismo
+// id siempre → re-importar actualiza en vez de duplicar (idempotencia).
+uint32_t fnv1a(const char* s) {
+    uint32_t h = 2166136261u;
+    while (*s) {
+        h ^= (uint8_t)*s++;
+        h *= 16777619u;
+    }
+    return (h != 0) ? h : 1u;   // 0 significa "crear nuevo": lo evitamos
+}
 }
 
 void WebService::begin() {
     if (!LittleFS.begin(true)) {   // true = formatear si está virgen
         log_w("LittleFS no disponible: la WebUI no tendra frontend");
     }
+    // CORS abierto: la extensión de Chrome (v0.5) postea desde otro origen
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     setupRoutes();
     // Ojo: _server.begin() NO se llama aquí — esperamos al WiFi en loop()
 }
@@ -146,6 +161,42 @@ void WebService::setupRoutes() {
     });
 
     // --- Agenda (rutas específicas primero, como siempre) --------------------
+
+    // Import masivo: MISMO contrato para el .ics parseado por la WebUI y para
+    // la extensión de Chrome (docs/IMPORT_API.md). Body JSON:
+    //   {"calendarId":0,"events":[{"uid":"...","title":"...","start":e,"end":e}]}
+    // OJO: registrado ANTES que POST /api/events (match por prefijo).
+    auto* importHandler = new AsyncCallbackJsonWebHandler(
+        "/api/events/import",
+        [](AsyncWebServerRequest* req, JsonVariant& json) {
+            const JsonObject root = json.as<JsonObject>();
+            const uint8_t defCal = (uint8_t)((int)(root["calendarId"] | 0) % 4);
+            int queued = 0, dropped = 0;
+            for (JsonObject o : root["events"].as<JsonArray>()) {
+                const char* uid = o["uid"] | "";
+                const char* title = o["title"] | "";
+                models::Event e = {};
+                e.start = (time_t)(o["start"] | 0u);
+                e.end   = (time_t)(o["end"] | 0u);
+                if (uid[0] == '\0' || title[0] == '\0' || e.end <= e.start) {
+                    ++dropped;
+                    continue;
+                }
+                e.id = fnv1a(uid);
+                strncpy(e.title, title, sizeof(e.title) - 1);
+                e.calendarId = o["cal"].is<int>() ? (uint8_t)((int)o["cal"] % 4) : defCal;
+                e.alertMinBefore = 10;
+                e.flags = models::EVT_SYNCED;
+                if (calendarStore.enqueueUpsertWait(e, 200)) ++queued;
+                else ++dropped;
+            }
+            char resp[48];
+            snprintf(resp, sizeof(resp), "{\"queued\":%d,\"dropped\":%d}", queued, dropped);
+            req->send(200, "application/json", resp);
+        });
+    importHandler->setMethod(HTTP_POST);
+    _server.addHandler(importHandler);
+
     _server.on("/api/events/delete", HTTP_POST, [](AsyncWebServerRequest* req) {
         const bool ok = calendarStore.enqueueRemove(idParam(req));
         req->send(ok ? 202 : 503, "application/json", "{}");
@@ -208,6 +259,13 @@ void WebService::setupRoutes() {
     _server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
 
     _server.onNotFound([](AsyncWebServerRequest* req) {
+        if (req->method() == HTTP_OPTIONS) {   // preflight CORS de la extensión
+            AsyncWebServerResponse* r = req->beginResponse(204);
+            r->addHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+            r->addHeader("Access-Control-Allow-Headers", "Content-Type");
+            req->send(r);
+            return;
+        }
         req->send(404, "text/plain", "404 - el conejo no encontro eso");
     });
 }
