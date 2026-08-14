@@ -8,7 +8,7 @@ namespace config {
 
 constexpr const char* OS_NAME       = "Miss Poppy Rabbit";
 constexpr const char* OS_NAME_SHORT = "Miss P. Rabbit";   // para espacios estrechos (launcher)
-constexpr const char* OS_VERSION    = "0.3.0";
+constexpr const char* OS_VERSION    = "0.4.0";
 // El hostname se queda corto a propósito: http://mspos.local es cómodo de
 // teclear. Cámbialo aquí si prefieres otro (p.ej. "poppy" → http://poppy.local).
 constexpr const char* HOSTNAME   = "mspos";
@@ -21,8 +21,9 @@ constexpr int SD_CS   = 12;
 
 // Rutas de datos. Todo lo nuestro vive bajo /mspos para convivir con
 // cualquier otra cosa que haya en la tarjeta.
-constexpr const char* DATA_DIR   = "/mspos";
-constexpr const char* TASKS_FILE = "/mspos/tasks.json";
+constexpr const char* DATA_DIR    = "/mspos";
+constexpr const char* TASKS_FILE  = "/mspos/tasks.json";
+constexpr const char* AGENDA_FILE = "/mspos/agenda.json";
 
 // Zona horaria en formato POSIX TZ. Bogotá = GMT-5 sin horario de verano.
 // (Ojo: en POSIX el signo va invertido — "COT5" significa UTC menos 5.)

@@ -23,10 +23,15 @@ struct Calendar {
 };
 
 // Flags de bit para Event/Task (un byte guarda 8 booleanos).
+// Las alertas son escalonadas (modo TDAH): 10 min antes, 2 min antes, y al
+// empezar pregunta si ya estás en la reunión — insiste cada 5 min hasta
+// que confirmes (EVT_CONFIRMED) o el evento termine.
 enum EventFlags : uint8_t {
-    EVT_DONE   = 1 << 0,   // completado / ya pasó
-    EVT_SYNCED = 1 << 1,   // vino del import de v0.5 (idempotencia)
-    EVT_ALERTED = 1 << 2,  // la alerta sonora ya se disparó
+    EVT_DONE      = 1 << 0,   // completado / ya pasó
+    EVT_SYNCED    = 1 << 1,   // vino del import de v0.5 (idempotencia)
+    EVT_ALERT10   = 1 << 2,   // el aviso de 10 min ya sonó
+    EVT_ALERT2    = 1 << 3,   // el aviso de 2 min ya sonó
+    EVT_CONFIRMED = 1 << 4,   // el usuario confirmó que está en el evento
 };
 
 // Evento de agenda (v0.4) e importable desde el navegador (v0.5).

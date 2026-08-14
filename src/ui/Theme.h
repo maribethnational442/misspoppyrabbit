@@ -25,6 +25,12 @@ constexpr uint16_t STEM      = rgb565(0x6A, 0x99, 0x4E); // verde tallo: estados
 constexpr uint16_t GRAY      = rgb565(0x88, 0x88, 0x88); // texto secundario
 constexpr uint16_t DARKGRAY  = rgb565(0x2A, 0x2A, 0x2A); // separadores, fondos sutiles
 
+// Colores de los 4 calendarios de la Agenda (2 trabajos x 2 clientes).
+// Elegidos para distinguirse entre si en la pantalla pequena.
+constexpr uint16_t CAL_AMBER = rgb565(0xE9, 0xC4, 0x6A);
+constexpr uint16_t CAL_BLUE  = rgb565(0x5F, 0xA8, 0xD3);
+constexpr uint16_t CALENDAR_COLORS[4] = { POPPY, STEM, CAL_AMBER, CAL_BLUE };
+
 // --- Métricas de layout ----------------------------------------------------
 constexpr int SCREEN_W    = 240;
 constexpr int SCREEN_H    = 135;
