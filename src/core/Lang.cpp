@@ -42,7 +42,7 @@ const char* const EN[N] = {
     "n:new v:week ,/:day t:today",
     "ENTER: open day   v: day view",
     "New event:",
-    "; . time   , / day   c: calendar",
+    "; . time   , / day",
     "[ENTER] save   [`] cancel",
     "Today", "Tomorrow",
     "In 10 minutes:",
@@ -55,7 +55,7 @@ const char* const EN[N] = {
     // Reminders
     "Reminder:",
     "[ENTER] done   [`] snooze 5 min",
-    "r: reminder",
+    "c: calendar   r: reminder",
 };
 
 const char* const ES[N] = {
@@ -91,7 +91,7 @@ const char* const ES[N] = {
     "n:nuevo v:semana ,/:dia t:hoy",
     "ENTER: abrir dia   v: vista dia",
     "Nuevo evento:",
-    "; . hora   , / dia   c: calendario",
+    "; . hora   , / dia",
     "[ENTER] guardar   [`] cancelar",
     "Hoy", "Manana",
     "En 10 minutos:",
@@ -104,7 +104,7 @@ const char* const ES[N] = {
     // Reminders
     "Recordatorio:",
     "[ENTER] hecho   [`] posponer 5 min",
-    "r: recordatorio",
+    "c: calendario   r: recordatorio",
 };
 
 const char* const DAYS_EN[7]    = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};

@@ -223,22 +223,23 @@ void AgendaApp::drawQuickWhen(M5Canvas& c) {
              _qMinOfDay / 60, _qMinOfDay % 60);
     c.setTextSize(2);
     c.drawString(when, 18, 52);
+    if (_qReminder) {   // '!' grande en poppy = esto es un reminder
+        c.setTextColor(POPPY);
+        c.drawString("!", 18 + c.textWidth(when) + 10, 52);
+        c.setTextColor(PRIMARY);
+    }
 
-    // Calendario elegido con su color + indicador de reminder
+    // Calendario elegido con su color
     c.setTextSize(1);
     c.fillRect(18, 74, 8, 8, CALENDAR_COLORS[_qCal]);
     c.setTextColor(GRAY);
     c.drawString(calendarStore.calendars()[_qCal].name, 30, 74);
-    if (_qReminder) {
-        c.setTextColor(POPPY);
-        c.drawString("[!]", SCREEN_W - 46, 74);
-    }
 
+    // Pistas en tres líneas cortas: una larga se saldría de los 240px
     c.setTextColor(DARKGRAY);
-    char hints[64];
-    snprintf(hints, sizeof(hints), "%s   %s", tr(Str::QuickWhenHint), tr(Str::QuickRemToggle));
-    c.drawString(hints, 18, 90);
-    c.drawString(tr(Str::QuickSaveHint), 18, 102);
+    c.drawString(tr(Str::QuickWhenHint), 18, 86);
+    c.drawString(tr(Str::QuickRemToggle), 18, 96);
+    c.drawString(tr(Str::QuickSaveHint), 18, 106);
 }
 
 void AgendaApp::saveQuickEvent() {
