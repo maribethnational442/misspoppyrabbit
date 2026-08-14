@@ -254,6 +254,11 @@ bool NotesService::recStart() {
     // El mic y el speaker comparten el I2S: silencio total mientras grabamos
     melodyPlayer.stop();
     M5Cardputer.Speaker.end();
+    // Ganancia del driver: el default (16) graba en susurros; 64 es lo que
+    // usan los ejemplos oficiales de M5Unified para voz.
+    auto mcfg = M5Cardputer.Mic.config();
+    mcfg.magnification = 64;
+    M5Cardputer.Mic.config(mcfg);
     M5Cardputer.Mic.begin();
 
     _recBytes = 0;
@@ -267,10 +272,17 @@ void NotesService::pumpRecording() {
     // record() llena el chunk (bloquea ~128ms): el loop respira entre chunks,
     // el audio jamás se acumula en RAM y la SD recibe 4KB por vez.
     if (M5Cardputer.Mic.record(_buf[0], REC_CHUNK, SAMPLE_RATE)) {
+        // Ganancia digital suave con saturación: mejor un recorte limpio en
+        // los picos que una nota entera en susurros.
+        constexpr int SOFT_GAIN = 2;
         int16_t peak = 0;
         for (int i = 0; i < REC_CHUNK; ++i) {
-            const int16_t v = (_buf[0][i] < 0) ? -_buf[0][i] : _buf[0][i];
-            if (v > peak) peak = v;
+            int32_t v = (int32_t)_buf[0][i] * SOFT_GAIN;
+            if (v > 32767) v = 32767;
+            if (v < -32768) v = -32768;
+            _buf[0][i] = (int16_t)v;
+            const int16_t a = (v < 0) ? (int16_t)-v : (int16_t)v;
+            if (a > peak) peak = a;
         }
         _recLevel = (uint8_t)((peak * 100) / 32768);
         SdLock lock;
