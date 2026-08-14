@@ -40,10 +40,17 @@ function readFeeds() {
 
 async function loadCalendarNames(device) {
   try {
-    const r = await fetch(`${device}/api/events`, { signal: AbortSignal.timeout(4000) });
+    const r = await fetch(`${device}/api/events`, { signal: AbortSignal.timeout(5000) });
     const data = await r.json();
     if (data.calendars?.length) calNames = data.calendars.map((c) => c.name);
-  } catch { /* dispositivo fuera de linea: nombres genericos */ }
+  } catch {
+    // Sin dispositivo no hay nombres reales NI sync: que se vea claramente.
+    // (Pista tipica: en Windows "prabbit.local" a veces no resuelve — usa la
+    // IP del Cardputer, visible en su app Settings.)
+    $("status").textContent =
+      `Device not reachable at ${device} — same WiFi? On Windows try the device IP instead of .local`;
+    $("status").className = "err";
+  }
 }
 
 function showLastSync(last) {

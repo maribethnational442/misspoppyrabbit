@@ -125,6 +125,7 @@ function hashUid(s) {
 // --- Parte con DOM (no corre en los tests de Node) --------------------------
 if (typeof document !== "undefined" && typeof chrome !== "undefined" && chrome.storage) {
   let pending = false;
+  let observer = null;
 
   // En el Google Calendar actual los chips de evento NO llevan aria-label:
   // el texto accesible vive en un span oculto DENTRO del chip. Se busca el
@@ -142,6 +143,12 @@ if (typeof document !== "undefined" && typeof chrome !== "undefined" && chrome.s
 
   async function scan() {
     pending = false;
+    // Si la extension fue recargada, este script quedo huerfano (sin puente
+    // chrome.*): se apaga solo. La pestaña recargada traera el script nuevo.
+    if (!chrome.runtime?.id) {
+      observer?.disconnect();
+      return;
+    }
     const found = {};
     const add = (parsed) => {
       const uid = `cap-${hashUid(parsed.title + "|" + parsed.start)}`;
@@ -172,27 +179,33 @@ if (typeof document !== "undefined" && typeof chrome !== "undefined" && chrome.s
                  `${Object.keys(found).length} parseados (${past} ya pasados: se descartan)`);
     if (!Object.keys(found).length) return;
 
-    const { captured = {} } = await chrome.storage.local.get("captured");
-    Object.assign(captured, found);
-    // Poda: eventos ya pasados (2 dias de gracia) y tope de seguridad
-    const now = Date.now() / 1000;
-    for (const k of Object.keys(captured)) {
-      if (captured[k].start < now - 2 * 86400) delete captured[k];
+    try {
+      const { captured = {} } = await chrome.storage.local.get("captured");
+      Object.assign(captured, found);
+      // Poda: eventos ya pasados (2 dias de gracia) y tope de seguridad
+      const now = Date.now() / 1000;
+      for (const k of Object.keys(captured)) {
+        if (captured[k].start < now - 2 * 86400) delete captured[k];
+      }
+      const keys = Object.keys(captured);
+      if (keys.length > 600) {
+        keys.sort((a, b) => captured[b].start - captured[a].start)
+            .slice(600).forEach((k) => delete captured[k]);
+      }
+      await chrome.storage.local.set({ captured });
+    } catch (e) {
+      // Contexto invalidado en pleno vuelo (extension recargada): apagarse
+      observer?.disconnect();
     }
-    const keys = Object.keys(captured);
-    if (keys.length > 600) {
-      keys.sort((a, b) => captured[b].start - captured[a].start)
-          .slice(600).forEach((k) => delete captured[k]);
-    }
-    await chrome.storage.local.set({ captured });
   }
 
-  new MutationObserver(() => {
+  observer = new MutationObserver(() => {
     if (!pending) {
       pending = true;
       setTimeout(scan, 1500);   // deja que la vista termine de pintar
     }
-  }).observe(document.body, { subtree: true, childList: true });
+  });
+  observer.observe(document.body, { subtree: true, childList: true });
 
   setTimeout(scan, 3000);   // barrido inicial al abrir la pestaña
 }
