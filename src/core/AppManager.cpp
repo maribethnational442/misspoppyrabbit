@@ -44,6 +44,43 @@ void AppManager::goBack() {
     topApp()->requestRedraw();
 }
 
+// Saca una app de la pila esté donde esté (p.ej. la LockApp cuando una
+// alerta se apiló encima del bloqueo).
+void AppManager::removeFromStack(App* app) {
+    for (int i = _depth - 1; i >= 0; --i) {
+        if (_stack[i] != app) continue;
+        app->onExit();
+        for (int j = i; j < _depth - 1; ++j) _stack[j] = _stack[j + 1];
+        --_depth;
+        if (i == _depth && topApp() != nullptr) {   // era el tope
+            topApp()->onEnter();
+        }
+        if (topApp() != nullptr) topApp()->requestRedraw();
+        return;
+    }
+}
+
+void AppManager::setSystemApps(App* lockApp, App* recorderApp) {
+    _lockApp = lockApp;
+    _recApp = recorderApp;
+}
+
+void AppManager::lockDevice() {
+    if (_locked || _lockApp == nullptr) return;
+    _locked = true;
+    if (topApp() != _lockApp) launch(_lockApp);
+    // Al bolsillo: pantalla fuera inmediatamente
+    _screenOff = true;
+    M5Cardputer.Display.setBrightness(0);
+}
+
+void AppManager::unlockDevice() {
+    if (!_locked) return;
+    _locked = false;
+    wakeScreen();
+    removeFromStack(_lockApp);
+}
+
 void AppManager::tick() {
     // Ritmo fijo de ~30fps: si aún no toca, cedemos CPU (delay(1) deja
     // respirar al WiFi y al resto de tareas de FreeRTOS).
@@ -63,8 +100,10 @@ void AppManager::tick() {
 
     // Apagado por inactividad (salvo apps que lo veten, como Reloj o Alerta).
     // En una LCD el gasto real es el backlight: apagarlo ES el modo ahorro.
+    // Bloqueado, el timeout es corto: la pantalla de bloqueo solo asoma 10s.
+    const uint32_t offAfter = _locked ? 10000 : config::SCREEN_OFF_AFTER_MS;
     if (!_screenOff && !top->preventsScreenSleep() &&
-        idleMs() > config::SCREEN_OFF_AFTER_MS) {
+        idleMs() > offAfter) {
         _screenOff = true;
         M5Cardputer.Display.setBrightness(0);
     }
@@ -99,15 +138,41 @@ void AppManager::pollKeyboard() {
     if (!M5Cardputer.Keyboard.isChange()) return;   // solo en flancos: sin autorepeat
     if (!M5Cardputer.Keyboard.isPressed()) return;  // ignoramos la liberación
 
+    const auto st = M5Cardputer.Keyboard.keysState();
+
+    // --- Combos globales Fn+tecla: ANTES que todo lo demás -------------------
+    bool fnL = false, fnM = false;
+    if (st.fn) {
+        for (auto ch : st.word) {
+            if (ch == 'l') fnL = true;
+            if (ch == 'm') fnM = true;
+        }
+    }
+    if (fnL && _lockApp != nullptr) {   // Fn+L: bloquear/desbloquear
+        if (_locked) unlockDevice();
+        else lockDevice();
+        return;
+    }
+    if (_locked) {
+        // Bloqueado: cualquier tecla solo asoma la pantalla de bloqueo 10s
+        wakeScreen();
+        return;
+    }
+
     // La tecla que despierta la pantalla se "traga": despertar no debe
-    // ejecutar acciones en la app que estaba debajo.
-    if (_screenOff) {
+    // ejecutar acciones en la app que estaba debajo. (Excepto Fn+M, que
+    // despierta Y abre la grabadora: captura rápida hasta con pantalla off.)
+    if (_screenOff && !fnM) {
         wakeScreen();
         return;
     }
     _lastActivity = millis();
 
-    const auto st = M5Cardputer.Keyboard.keysState();
+    if (fnM && _recApp != nullptr) {    // Fn+M: grabadora desde cualquier sitio
+        wakeScreen();
+        if (topApp() != _recApp) launch(_recApp);
+        return;
+    }
 
     if (st.enter) { dispatchKey({Key::Ok, 0}); return; }
     if (st.del)   { dispatchKey({Key::Backspace, 0}); return; }

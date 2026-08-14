@@ -2,6 +2,7 @@
 #include "../core/AppManager.h"
 #include "../core/BriefingService.h"
 #include "../core/CalendarStore.h"
+#include "../core/NotesService.h"
 #include "../core/Sound.h"
 #include "../core/TaskStore.h"
 #include "../core/TimeZones.h"
@@ -59,13 +60,14 @@ void SettingsApp::update(uint32_t dtMs) {
 }
 
 // Filas: [0] Buscar redes | [1] Idioma | [2] Volumen | [3] Resumen del día |
-//        [4] Zona horaria | [5] Borrar datos | [6] Olvidar red | [7..] redes
+//        [4] Zona horaria | [5] Límite de voz | [6] Borrar datos |
+//        [7] Olvidar red | [8..] redes
 int SettingsApp::rowCount() const {
-    return 6 + (wifiService.hasCredentials() ? 1 : 0) + _netCount;
+    return 7 + (wifiService.hasCredentials() ? 1 : 0) + _netCount;
 }
 
 void SettingsApp::activateRow(int row) {
-    const int netBase = 6 + (wifiService.hasCredentials() ? 1 : 0);
+    const int netBase = 7 + (wifiService.hasCredentials() ? 1 : 0);
 
     if (row == 0) {
         if (!wifiService.scanning()) wifiService.startScan();
@@ -97,11 +99,16 @@ void SettingsApp::activateRow(int row) {
         return;
     }
     if (row == 5) {
+        notesService.adjustRecLimit(1);
+        requestRedraw();
+        return;
+    }
+    if (row == 6) {
         _mode = Mode::ConfirmErase;   // acción destructiva: siempre confirmar
         requestRedraw();
         return;
     }
-    if (wifiService.hasCredentials() && row == 6) {
+    if (wifiService.hasCredentials() && row == 7) {
         wifiService.forget();
         _nav.reset();
         requestRedraw();
@@ -174,7 +181,7 @@ void SettingsApp::drawList(M5Canvas& c) {
     c.drawFastHLine(0, LIST_Y - 4, SCREEN_W, DARKGRAY);
 
     // Lista con scroll
-    const int netBase = 6 + (wifiService.hasCredentials() ? 1 : 0);
+    const int netBase = 7 + (wifiService.hasCredentials() ? 1 : 0);
     for (int v = 0; v < _nav.visible; ++v) {
         const int row = _nav.scroll + v;
         if (row >= rowCount()) break;
@@ -198,8 +205,10 @@ void SettingsApp::drawList(M5Canvas& c) {
         } else if (row == 4) {
             snprintf(line, sizeof(line), tr(Str::TzRowFmt), tzones::label());
         } else if (row == 5) {
+            snprintf(line, sizeof(line), tr(Str::RecLimitRowFmt), notesService.recLimitS());
+        } else if (row == 6) {
             snprintf(line, sizeof(line), "%s", tr(Str::EraseRow));
-        } else if (wifiService.hasCredentials() && row == 6) {
+        } else if (wifiService.hasCredentials() && row == 7) {
             snprintf(line, sizeof(line), tr(Str::ForgetRowFmt), wifiService.ssid());
         } else {
             const Net& net = _nets[row - netBase];
@@ -276,6 +285,7 @@ void SettingsApp::onKey(const KeyEvent& e) {
             if (_nav.sel == 2) sound::setVolumePct(sound::volumePct() - 5);
             else if (_nav.sel == 3) briefingService.adjustBriefMin(-15);
             else if (_nav.sel == 4) tzones::cycle(-1);
+            else if (_nav.sel == 5) notesService.adjustRecLimit(-1);
             else break;
             requestRedraw();
             break;
@@ -283,6 +293,7 @@ void SettingsApp::onKey(const KeyEvent& e) {
             if (_nav.sel == 2) sound::setVolumePct(sound::volumePct() + 5);
             else if (_nav.sel == 3) briefingService.adjustBriefMin(15);
             else if (_nav.sel == 4) tzones::cycle(1);
+            else if (_nav.sel == 5) notesService.adjustRecLimit(1);
             else break;
             requestRedraw();
             break;

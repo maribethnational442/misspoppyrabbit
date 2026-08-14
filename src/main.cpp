@@ -16,6 +16,7 @@
 #include "core/StorageService.h"
 #include "core/TaskStore.h"
 #include "core/CalendarStore.h"
+#include "core/NotesService.h"
 #include "core/PomodoroService.h"
 #include "core/AlertService.h"
 #include "core/WebService.h"
@@ -29,6 +30,9 @@
 #include "apps/AboutApp.h"
 #include "apps/AlertApp.h"
 #include "apps/BriefingApp.h"
+#include "apps/NotesApp.h"
+#include "apps/RecorderApp.h"
+#include "apps/LockApp.h"
 
 // Apps como objetos globales estáticos: viven toda la sesión, cero heap,
 // cero fragmentación (clave sin PSRAM).
@@ -55,6 +59,7 @@ void setup() {
     storage.begin();                // monta la microSD (si hay)
     taskStore.begin();              // carga las tareas desde la SD
     calendarStore.begin();          // carga agenda y calendarios
+    notesService.begin();           // indexa las notas
     webService.begin();             // rutas listas; arranca al conectar el WiFi
     showBootScreen(appManager.canvas());
 
@@ -62,9 +67,11 @@ void setup() {
     appManager.registerApp(&agendaApp);
     appManager.registerApp(&tasksApp);
     appManager.registerApp(&pomodoroApp);
+    appManager.registerApp(&notesApp);
     appManager.registerApp(&settingsApp);
     appManager.registerApp(&clockApp);
     appManager.registerApp(&aboutApp);
+    appManager.setSystemApps(&lockApp, &recorderApp);   // Fn+L / Fn+M
     appManager.launch(&launcherApp);
 }
 
@@ -72,6 +79,7 @@ void loop() {
     wifiService.loop();
     taskStore.loop();        // consume comandos de la web + guardado debounced
     calendarStore.loop();    // idem para la agenda
+    notesService.loop();     // comandos web + bombeo de grabación/reproducción
     pomodoroService.loop();  // el temporizador corre aunque la app no esté abierta
     alertService.loop();     // vigila las reuniones que se acercan
     briefingService.loop();  // el resumen del dia a su hora

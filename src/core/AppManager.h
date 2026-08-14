@@ -39,10 +39,18 @@ public:
     void wakeScreen();            // reenciende si estaba apagada
     bool screenOff() const        { return _screenOff; }
 
+    // --- Combos globales del sistema (Fn+L bloqueo, Fn+M grabadora) ---
+    // main.cpp inyecta las apps: core/ no debe conocer apps concretas.
+    void setSystemApps(App* lockApp, App* recorderApp);
+    void lockDevice();
+    void unlockDevice();
+    bool locked() const           { return _locked; }
+
 private:
     void pollKeyboard();
     void dispatchKey(const KeyEvent& e);
     void render(bool full);
+    void removeFromStack(App* app);
 
     App*     _stack[MAX_STACK] = {nullptr};
     int      _depth = 0;
@@ -55,6 +63,9 @@ private:
     uint32_t  _lastStatusRefresh = 0;
     uint32_t  _lastActivity = 0;
     bool      _screenOff = false;
+    bool      _locked = false;
+    App*      _lockApp = nullptr;
+    App*      _recApp = nullptr;
 };
 
 // Instancia global única (patrón habitual en firmware: objetos de sistema

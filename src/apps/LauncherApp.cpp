@@ -10,8 +10,8 @@
 
 namespace {
 constexpr int LIST_X   = 4;
-constexpr int LIST_Y   = 16;    // debajo de la status bar
-constexpr int ROW_H    = 18;    // 6 apps caben: 16 + 6*18 = 124 < 135
+constexpr int LIST_Y   = 15;    // debajo de la status bar
+constexpr int ROW_H    = 16;    // 7 apps caben: 15 + 7*16 = 127 < 135
 constexpr int LIST_W   = 148;
 constexpr int MASCOT_X = 176;
 constexpr int MASCOT_Y = 34;
@@ -23,7 +23,8 @@ int cursorTargetY(int sel) { return LIST_Y + sel * ROW_H; }
 // apps en main.cpp (Agenda, Tareas, Pomodoro, Settings, Reloj, About).
 const char* const* const PROPS[] = {
     sprites::PROP_AGENDA, sprites::PROP_TASKS, sprites::PROP_POMODORO,
-    sprites::PROP_SETTINGS, sprites::PROP_CLOCK, sprites::PROP_ABOUT,
+    sprites::PROP_NOTES, sprites::PROP_SETTINGS, sprites::PROP_CLOCK,
+    sprites::PROP_ABOUT,
 };
 constexpr int NUM_PROPS = sizeof(PROPS) / sizeof(PROPS[0]);
 constexpr uint32_t REACT_MS = 400;   // duración de la reacción completa
@@ -97,7 +98,7 @@ void LauncherApp::draw(M5Canvas& c) {
             pixelart::draw(c, app->icon(), 16, LIST_X + 6, rowY, 1);
         }
         c.setTextColor(i == _sel ? PRIMARY : GRAY);
-        c.drawString(app->name(), LIST_X + 30, rowY + (ROW_H - 2) / 2);
+        c.drawString(app->name(), LIST_X + 30, rowY + ROW_H / 2);
     }
 
     // Mascota + nombre del OS a la derecha. Durante la reacción (o la
