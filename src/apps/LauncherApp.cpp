@@ -9,8 +9,8 @@
 
 namespace {
 constexpr int LIST_X   = 4;
-constexpr int LIST_Y   = 18;    // debajo de la status bar
-constexpr int ROW_H    = 20;    // 5 apps caben: 18 + 5*20 = 118 < 135
+constexpr int LIST_Y   = 16;    // debajo de la status bar
+constexpr int ROW_H    = 18;    // 6 apps caben: 16 + 6*18 = 124 < 135
 constexpr int LIST_W   = 148;
 constexpr int MASCOT_X = 176;
 constexpr int MASCOT_Y = 34;
@@ -67,7 +67,7 @@ void LauncherApp::draw(M5Canvas& c) {
         App* app = appManager.apps()[i];
         const int rowY = LIST_Y + i * ROW_H;
         if (app->icon() != nullptr) {
-            pixelart::draw(c, app->icon(), 16, LIST_X + 6, rowY + 1, 1);
+            pixelart::draw(c, app->icon(), 16, LIST_X + 6, rowY, 1);
         }
         c.setTextColor(i == _sel ? PRIMARY : GRAY);
         c.drawString(app->name(), LIST_X + 30, rowY + (ROW_H - 2) / 2);

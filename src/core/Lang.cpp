@@ -36,6 +36,20 @@ const char* const EN[N] = {
     "No time yet.", "Connect WiFi in Settings", "to sync the clock (NTP).",
     // About
     "Free RAM: %u KB",
+    // Agenda
+    "Agenda",
+    "No events this day.",
+    "n:new v:week ,/:day t:today",
+    "ENTER: open day   v: day view",
+    "New event:",
+    "; . time   , / day   c: calendar",
+    "[ENTER] save   [`] cancel",
+    "Today", "Tomorrow",
+    "In 10 minutes:",
+    "In 2 minutes!",
+    "Are you in this meeting?",
+    "[ENTER] yes, I'm in   [`] ask in 5 min",
+    "any key to dismiss",
 };
 
 const char* const ES[N] = {
@@ -65,6 +79,20 @@ const char* const ES[N] = {
     "Sin hora todavia.", "Conecta WiFi en Settings", "para sincronizar (NTP).",
     // About
     "RAM libre: %u KB",
+    // Agenda
+    "Agenda",
+    "Sin eventos este dia.",
+    "n:nuevo v:semana ,/:dia t:hoy",
+    "ENTER: abrir dia   v: vista dia",
+    "Nuevo evento:",
+    "; . hora   , / dia   c: calendario",
+    "[ENTER] guardar   [`] cancelar",
+    "Hoy", "Manana",
+    "En 10 minutos:",
+    "En 2 minutos!",
+    "Estas ya en la reunion?",
+    "[ENTER] si, estoy   [`] en 5 min",
+    "cualquier tecla para cerrar",
 };
 
 const char* const DAYS_EN[7]    = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};

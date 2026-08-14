@@ -90,6 +90,26 @@ static const char* const POMODORO[ICON_H] = {
     "                ",
 };
 
+// Calendario (Agenda): anillas arriba + rejilla con un dia marcado en poppy
+static const char* const AGENDA[ICON_H] = {
+    "   #      #     ",
+    "   #      #     ",
+    " ############## ",
+    " #            # ",
+    " ############## ",
+    " # -- -- -- -- #",
+    " #            # ",
+    " # -- RR -- -- #",
+    " #    RR      # ",
+    " # -- -- -- -- #",
+    " #            # ",
+    " ############## ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+};
+
 // Información (About)
 static const char* const INFO[ICON_H] = {
     "                ",

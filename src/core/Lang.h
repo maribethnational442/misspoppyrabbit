@@ -31,6 +31,11 @@ enum class Str : uint8_t {
     ClockNoTime1, ClockNoTime2, ClockNoTime3,
     // About
     AboutRamFmt,
+    // Agenda (v0.4)
+    AppAgenda,
+    AgendaEmptyDay, AgendaHintDay, AgendaHintWeek,
+    QuickTitle, QuickWhenHint, QuickSaveHint, QuickToday, QuickTomorrow,
+    AlertIn10, AlertIn2, AlertConfirm, AlertConfirmHint, AlertDismissHint,
     COUNT
 };
 
