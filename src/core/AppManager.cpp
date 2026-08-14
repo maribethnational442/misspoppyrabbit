@@ -1,7 +1,20 @@
 #include "AppManager.h"
 #include "../ui/Theme.h"
+#include "Config.h"
 
 AppManager appManager;
+
+uint32_t AppManager::idleMs() const {
+    return millis() - _lastActivity;
+}
+
+void AppManager::wakeScreen() {
+    _lastActivity = millis();
+    if (!_screenOff) return;
+    _screenOff = false;
+    M5Cardputer.Display.setBrightness(config::BRIGHTNESS);
+    if (topApp() != nullptr) topApp()->requestRedraw();
+}
 
 void AppManager::begin() {
     _canvas.setColorDepth(16);
@@ -47,6 +60,16 @@ void AppManager::tick() {
 
     App* top = topApp();
     if (top == nullptr) return;
+
+    // Apagado por inactividad (salvo apps que lo veten, como Reloj o Alerta).
+    // En una LCD el gasto real es el backlight: apagarlo ES el modo ahorro.
+    if (!_screenOff && !top->preventsScreenSleep() &&
+        idleMs() > config::SCREEN_OFF_AFTER_MS) {
+        _screenOff = true;
+        M5Cardputer.Display.setBrightness(0);
+    }
+    if (_screenOff) return;           // apps en pausa; los servicios siguen
+
     top->update(dt);
 
     // La status bar cambia sola (reloj/batería): forzamos un repintado 1/s
@@ -75,6 +98,14 @@ void AppManager::render(bool full) {
 void AppManager::pollKeyboard() {
     if (!M5Cardputer.Keyboard.isChange()) return;   // solo en flancos: sin autorepeat
     if (!M5Cardputer.Keyboard.isPressed()) return;  // ignoramos la liberación
+
+    // La tecla que despierta la pantalla se "traga": despertar no debe
+    // ejecutar acciones en la app que estaba debajo.
+    if (_screenOff) {
+        wakeScreen();
+        return;
+    }
+    _lastActivity = millis();
 
     const auto st = M5Cardputer.Keyboard.keysState();
 

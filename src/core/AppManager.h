@@ -34,6 +34,11 @@ public:
     M5Canvas& canvas()        { return _canvas; }
     App* topApp() const       { return _depth > 0 ? _stack[_depth - 1] : nullptr; }
 
+    // --- Ahorro de energía ---
+    uint32_t idleMs() const;      // ms desde la última tecla
+    void wakeScreen();            // reenciende si estaba apagada
+    bool screenOff() const        { return _screenOff; }
+
 private:
     void pollKeyboard();
     void dispatchKey(const KeyEvent& e);
@@ -48,6 +53,8 @@ private:
     StatusBar _statusBar;
     uint32_t  _lastTick = 0;
     uint32_t  _lastStatusRefresh = 0;
+    uint32_t  _lastActivity = 0;
+    bool      _screenOff = false;
 };
 
 // Instancia global única (patrón habitual en firmware: objetos de sistema

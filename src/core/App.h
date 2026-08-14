@@ -46,6 +46,11 @@ public:
     // siendo Volver y ENTER/DEL siguen siendo Ok/Backspace.
     virtual bool wantsTextInput() const { return false; }
 
+    // Si devuelve true, la pantalla NO se apaga por inactividad con esta app
+    // en primer plano (el Reloj gestiona su propio modo noche; una alerta
+    // debe permanecer visible).
+    virtual bool preventsScreenSleep() const { return false; }
+
     // --- gestión del flag de repintado (lo usa el AppManager) ---
     void requestRedraw()      { _dirty = true; }
     bool dirty() const        { return _dirty; }

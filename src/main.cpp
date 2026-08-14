@@ -7,6 +7,7 @@
 #include <M5Cardputer.h>
 
 #include "core/AppManager.h"
+#include "core/Config.h"
 #include "core/Lang.h"
 #include "core/Sound.h"
 #include "core/WifiService.h"
@@ -39,7 +40,7 @@ void setup() {
     auto cfg = M5.config();
     M5Cardputer.begin(cfg, true);   // true = inicializar también el teclado
     M5Cardputer.Display.setRotation(1);
-    M5Cardputer.Display.setBrightness(80);
+    M5Cardputer.Display.setBrightness(config::BRIGHTNESS);
 
     appManager.begin();             // crea el canvas de 240×135
 
@@ -70,7 +71,9 @@ void loop() {
     alertService.loop();     // vigila las reuniones que se acercan
 
     // Si hay una alerta activa, el banner se impone sobre lo que haya
+    // (y despierta la pantalla si estaba apagada por inactividad)
     if (alertService.active() && appManager.topApp() != &alertApp) {
+        appManager.wakeScreen();
         appManager.launch(&alertApp);
     }
 

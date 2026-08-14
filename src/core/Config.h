@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 // ============================================================================
 // Config.h — constantes de configuración del sistema (no visuales).
@@ -8,7 +9,14 @@ namespace config {
 
 constexpr const char* OS_NAME       = "Miss Poppy Rabbit";
 constexpr const char* OS_NAME_SHORT = "Miss P. Rabbit";   // para espacios estrechos (launcher)
-constexpr const char* OS_VERSION    = "0.4.0";
+constexpr const char* OS_VERSION    = "0.4.1";
+
+// --- Pantalla y ahorro de energía ---
+// La pantalla es IPS/LCD: lo que gasta es la RETROILUMINACIÓN, no los píxeles.
+constexpr int      BRIGHTNESS          = 80;      // brillo normal (0-255)
+constexpr int      DIM_BRIGHTNESS      = 8;       // modo noche del Reloj
+constexpr uint32_t SCREEN_OFF_AFTER_MS = 150000;  // 2.5 min sin teclas → apagar
+constexpr uint32_t CLOCK_DIM_AFTER_MS  = 120000;  // 2 min en el Reloj → modo noche
 // Nombre en la red: la WebUI vive en http://prabbit.local
 constexpr const char* HOSTNAME   = "prabbit";
 
