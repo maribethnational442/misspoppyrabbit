@@ -27,10 +27,12 @@ const char* pomoRunStr(PomodoroService::Run r) {
     }
 }
 
-// id llega como query param (?id=N)
+// id llega como query param (?id=N). OJO: strtoul y no toInt() — los ids
+// importados son hashes de 32 bits SIN signo y toInt() desborda con la
+// mitad de ellos (bug real encontrado en pruebas).
 uint32_t idParam(AsyncWebServerRequest* req) {
     if (!req->hasParam("id")) return 0;
-    return (uint32_t)req->getParam("id")->value().toInt();
+    return (uint32_t)strtoul(req->getParam("id")->value().c_str(), nullptr, 10);
 }
 
 // Hash FNV-1a de 32 bits: convierte el UID textual de un evento externo
