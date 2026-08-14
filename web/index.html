@@ -136,6 +136,9 @@
       <option value="120">120 min</option>
     </select>
     <select id="ev-cal"></select>
+    <label class="full" style="font-size:12px;color:var(--gray)">
+      <input type="checkbox" id="ev-rem"> <span id="ev-rem-label">Reminder</span>
+    </label>
     <input type="hidden" id="ev-id" value="0">
     <button type="submit" id="ev-save">Save</button>
     <button type="button" id="ev-cancel" onclick="closeForm()">Cancel</button>
@@ -198,14 +201,16 @@ const I18N = {
         btn: { ready: "Start", running: "Pause", paused: "Resume", finished: "Next" },
         batt: "battery", ram: "free RAM", up: "uptime",
         evAdd: "+ Event", evEmpty: "No events this day.", evSave: "Save", evCancel: "Cancel",
-        evTitle: "Title...", evConfirmDel: "Delete event?", renamePrompt: "Calendar name:" },
+        evTitle: "Title...", evConfirmDel: "Delete event?", renamePrompt: "Calendar name:",
+        remLabel: "Reminder (alarm with a reason, no duration)" },
   es: { tasks: "TAREAS", reset: "Reiniciar", create: "Crear", placeholder: "Nueva tarea...",
         empty: "Sin tareas. El conejo esta orgulloso de ti.", confirmDel: "Borrar tarea?",
         work: "TRABAJO", brk: "DESCANSO", today: "Hoy", prio: ["baja", "media", "alta"],
         btn: { ready: "Iniciar", running: "Pausar", paused: "Seguir", finished: "Siguiente" },
         batt: "bateria", ram: "RAM libre", up: "uptime",
         evAdd: "+ Evento", evEmpty: "Sin eventos este dia.", evSave: "Guardar", evCancel: "Cancelar",
-        evTitle: "Titulo...", evConfirmDel: "Borrar evento?", renamePrompt: "Nombre del calendario:" },
+        evTitle: "Titulo...", evConfirmDel: "Borrar evento?", renamePrompt: "Nombre del calendario:",
+        remLabel: "Recordatorio (alarma con motivo, sin duracion)" },
 };
 let LANG = "en";
 const T = () => I18N[LANG];
@@ -221,6 +226,7 @@ function applyLang() {
   $("ev-save").textContent = T().evSave;
   $("ev-cancel").textContent = T().evCancel;
   $("ev-title").placeholder = T().evTitle;
+  $("ev-rem-label").textContent = T().remLabel;
   renderTasks(lastTasks);
   if (lastPomo) renderPomo(lastPomo);
   renderAgenda();
@@ -323,7 +329,7 @@ function renderAgenda() {
     const hm = (d) => d.toTimeString().slice(0, 5);
     li.innerHTML =
       `<span class="bar" style="background:${CAL_HEX[e.cal % 4]}"></span>` +
-      `<span class="time">${hm(t0)}-${hm(t1)}</span>` +
+      `<span class="time">${e.rem ? "&#128276; " + hm(t0) : hm(t0) + "-" + hm(t1)}</span>` +
       `<span class="title"></span>` +
       `<span class="del" onclick="editEvent(${e.id})" title="edit">&#9998;</span>` +
       `<span class="del" onclick="if(confirm('${T().evConfirmDel}'))post('/api/events/delete?id=${e.id}')">&times;</span>`;
@@ -347,7 +353,8 @@ function openForm(ev) {
   const start = ev ? new Date(ev.start * 1000) : new Date(selDay.getTime() + 9 * 3600000);
   $("ev-date").value = start.toISOString() && new Date(start.getTime() - start.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   $("ev-time").value = start.toTimeString().slice(0, 5);
-  $("ev-dur").value = ev ? String(Math.round((ev.end - ev.start) / 60)) : "60";
+  $("ev-dur").value = (ev && !ev.rem) ? String(Math.round((ev.end - ev.start) / 60)) : "60";
+  $("ev-rem").checked = !!(ev && ev.rem);
   const sel = $("ev-cal");
   sel.innerHTML = agenda.calendars.map(c => `<option value="${c.id}"></option>`).join("");
   agenda.calendars.forEach((c, i) => sel.options[i].textContent = c.name);
@@ -364,6 +371,7 @@ function saveEvent() {
   const end = start + parseInt($("ev-dur").value, 10) * 60;
   const q = `title=${encodeURIComponent($("ev-title").value.trim())}` +
             `&start=${start}&end=${end}&cal=${$("ev-cal").value}` +
+            ($("ev-rem").checked ? "&rem=1" : "") +
             ($("ev-id").value !== "0" ? `&id=${$("ev-id").value}` : "");
   fetch("/api/events?" + q, { method: "POST" });
   selDay = midnight(new Date(start * 1000));
