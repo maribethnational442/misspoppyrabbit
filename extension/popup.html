@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  :root { --bg:#000; --fg:#fff; --poppy:#E63946; --poppy-dim:#8a222a; --stem:#6A994E; --gray:#888; --dark:#2a2a2a; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 360px; background: var(--bg); color: var(--fg); font-family: "Courier New", monospace; padding: 14px; }
+  header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  header img { width: 32px; height: 32px; image-rendering: pixelated; }
+  h1 { font-size: 15px; letter-spacing: 1px; }
+  label { font-size: 11px; color: var(--gray); display: block; margin: 8px 0 3px; }
+  input[type=text], select {
+    width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--dark);
+    border-radius: 5px; padding: 6px; font-family: inherit; font-size: 12px;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--poppy); }
+  .feed { display: flex; gap: 6px; margin-bottom: 6px; }
+  .feed input { flex: 1; }
+  .feed select { width: 110px; }
+  .row { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+  button {
+    background: var(--bg); color: var(--fg); border: 1px solid var(--poppy);
+    border-radius: 5px; padding: 7px 12px; font-family: inherit; cursor: pointer; font-size: 12px;
+  }
+  button:hover { background: var(--poppy-dim); }
+  #status { font-size: 11px; color: var(--gray); margin-top: 10px; white-space: pre-line; min-height: 28px; }
+  .ok { color: var(--stem); }
+  .err { color: var(--poppy); }
+  .auto { font-size: 11px; color: var(--gray); display: flex; gap: 6px; align-items: center; }
+</style>
+</head>
+<body>
+<header>
+  <img src="icons/icon128.png" alt="">
+  <h1>Miss Poppy Rabbit Sync</h1>
+</header>
+
+<label>Device</label>
+<input type="text" id="device" placeholder="http://prabbit.local">
+
+<label>Calendar feeds (secret ICS address &rarr; target calendar)</label>
+<div id="feeds"></div>
+
+<div class="row">
+  <button id="save">Save</button>
+  <button id="sync">Sync now</button>
+  <span class="auto">
+    <input type="checkbox" id="auto">
+    every
+    <select id="interval" style="width:70px">
+      <option value="15">15m</option>
+      <option value="30">30m</option>
+      <option value="60" selected>1h</option>
+      <option value="180">3h</option>
+    </select>
+  </span>
+</div>
+
+<div id="status"></div>
+
+<script src="popup.js"></script>
+</body>
+</html>
