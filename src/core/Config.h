@@ -9,9 +9,8 @@ namespace config {
 constexpr const char* OS_NAME       = "Miss Poppy Rabbit";
 constexpr const char* OS_NAME_SHORT = "Miss P. Rabbit";   // para espacios estrechos (launcher)
 constexpr const char* OS_VERSION    = "0.4.0";
-// El hostname se queda corto a propósito: http://mspos.local es cómodo de
-// teclear. Cámbialo aquí si prefieres otro (p.ej. "poppy" → http://poppy.local).
-constexpr const char* HOSTNAME   = "mspos";
+// Nombre en la red: la WebUI vive en http://prabbit.local
+constexpr const char* HOSTNAME   = "prabbit";
 
 // microSD: pines del bus SPI dedicado del Cardputer
 constexpr int SD_SCK  = 40;
