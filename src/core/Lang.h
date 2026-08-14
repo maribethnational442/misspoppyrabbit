@@ -42,6 +42,8 @@ enum class Str : uint8_t {
     ReminderHead, ReminderHint, QuickRemToggle,
     // Borrado de datos
     EraseRow, EraseConfirm1, EraseConfirm2,
+    // Resumen del día y zona horaria
+    BriefTitle, BriefEmpty, BriefConflictFmt, BriefRowFmt, TzRowFmt,
     COUNT
 };
 

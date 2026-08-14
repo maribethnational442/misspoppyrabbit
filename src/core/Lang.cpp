@@ -60,6 +60,12 @@ const char* const EN[N] = {
     "> Erase all data",
     "Erase ALL tasks, events & reminders?",
     "WiFi, language and volume are kept.",
+    // Resumen del día y zona horaria
+    "Today's briefing",
+    "Nothing scheduled. Enjoy!",
+    "! %d events overlap",
+    "> Briefing: %02d:%02d (, / adjust)",
+    "> Timezone: %s",
 };
 
 const char* const ES[N] = {
@@ -113,6 +119,12 @@ const char* const ES[N] = {
     "> Borrar todos los datos",
     "Borrar TODAS las tareas, eventos y reminders?",
     "WiFi, idioma y volumen se conservan.",
+    // Resumen del día y zona horaria
+    "Resumen del dia",
+    "Nada agendado. Disfruta!",
+    "! %d eventos se cruzan",
+    "> Resumen: %02d:%02d (, / ajustar)",
+    "> Zona horaria: %s",
 };
 
 const char* const DAYS_EN[7]    = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};

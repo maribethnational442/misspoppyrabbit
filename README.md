@@ -104,6 +104,13 @@ device and watch the browser update, and vice versa. The page is a single
 gzipped HTML file served from flash. Two concurrent clients max (no PSRAM,
 no mercy).
 
+### 🌅 Daily briefing
+At a configurable hour (8:00 by default, in Settings) the device wakes up
+with a friendly chime and shows you the day ahead: every event and reminder,
+with **schedule conflicts highlighted in red** — overlapping meetings are the
+first thing you see, not the surprise you find at 11:30. Shown once per day;
+if the device was off at briefing time, it greets you on power-on instead.
+
 ### 🕐 Clock
 Big NTP-synced clock showing your next two events. After 2 minutes idle it
 switches to a **night mode**: minimum backlight, dim red `HH:MM` — a classic
@@ -167,8 +174,7 @@ Then on the device:
    syncs via NTP and the Web UI comes up at `http://prabbit.local`.
 2. Insert any FAT32 microSD for persistence — the firmware keeps all its data
    under `/mspos/` and won't touch anything else on the card.
-3. Set your timezone in [`src/core/Config.h`](src/core/Config.h) before
-   flashing (default: Bogotá, GMT-5).
+3. Pick your timezone in `Settings → Timezone` (default: Bogotá, GMT-5).
 
 ## Keyboard reference
 

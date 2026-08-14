@@ -1,8 +1,10 @@
 #include "SettingsApp.h"
 #include "../core/AppManager.h"
+#include "../core/BriefingService.h"
 #include "../core/CalendarStore.h"
 #include "../core/Sound.h"
 #include "../core/TaskStore.h"
+#include "../core/TimeZones.h"
 #include "../ui/Theme.h"
 #include "../ui/assets/Icons.h"
 #include <WiFi.h>
@@ -56,14 +58,14 @@ void SettingsApp::update(uint32_t dtMs) {
     if (_mode == Mode::List && _headerScroll.tick(dtMs)) requestRedraw();
 }
 
-// Filas: [0] Buscar redes | [1] Idioma | [2] Volumen | [3] Borrar datos |
-//        [4] Olvidar red (si hay) | [5..] redes
+// Filas: [0] Buscar redes | [1] Idioma | [2] Volumen | [3] Resumen del día |
+//        [4] Zona horaria | [5] Borrar datos | [6] Olvidar red | [7..] redes
 int SettingsApp::rowCount() const {
-    return 4 + (wifiService.hasCredentials() ? 1 : 0) + _netCount;
+    return 6 + (wifiService.hasCredentials() ? 1 : 0) + _netCount;
 }
 
 void SettingsApp::activateRow(int row) {
-    const int netBase = 4 + (wifiService.hasCredentials() ? 1 : 0);
+    const int netBase = 6 + (wifiService.hasCredentials() ? 1 : 0);
 
     if (row == 0) {
         if (!wifiService.scanning()) wifiService.startScan();
@@ -84,11 +86,22 @@ void SettingsApp::activateRow(int row) {
         return;
     }
     if (row == 3) {
+        // ENTER salta media hora; el ajuste fino es con , /
+        briefingService.adjustBriefMin(30);
+        requestRedraw();
+        return;
+    }
+    if (row == 4) {
+        tzones::cycle(1);
+        requestRedraw();
+        return;
+    }
+    if (row == 5) {
         _mode = Mode::ConfirmErase;   // acción destructiva: siempre confirmar
         requestRedraw();
         return;
     }
-    if (wifiService.hasCredentials() && row == 4) {
+    if (wifiService.hasCredentials() && row == 6) {
         wifiService.forget();
         _nav.reset();
         requestRedraw();
@@ -161,7 +174,7 @@ void SettingsApp::drawList(M5Canvas& c) {
     c.drawFastHLine(0, LIST_Y - 4, SCREEN_W, DARKGRAY);
 
     // Lista con scroll
-    const int netBase = 4 + (wifiService.hasCredentials() ? 1 : 0);
+    const int netBase = 6 + (wifiService.hasCredentials() ? 1 : 0);
     for (int v = 0; v < _nav.visible; ++v) {
         const int row = _nav.scroll + v;
         if (row >= rowCount()) break;
@@ -180,8 +193,13 @@ void SettingsApp::drawList(M5Canvas& c) {
         } else if (row == 2) {
             snprintf(line, sizeof(line), tr(Str::VolumeRowFmt), sound::volumePct());
         } else if (row == 3) {
+            snprintf(line, sizeof(line), tr(Str::BriefRowFmt),
+                     briefingService.briefMin() / 60, briefingService.briefMin() % 60);
+        } else if (row == 4) {
+            snprintf(line, sizeof(line), tr(Str::TzRowFmt), tzones::label());
+        } else if (row == 5) {
             snprintf(line, sizeof(line), "%s", tr(Str::EraseRow));
-        } else if (wifiService.hasCredentials() && row == 4) {
+        } else if (wifiService.hasCredentials() && row == 6) {
             snprintf(line, sizeof(line), tr(Str::ForgetRowFmt), wifiService.ssid());
         } else {
             const Net& net = _nets[row - netBase];
@@ -254,17 +272,19 @@ void SettingsApp::onKey(const KeyEvent& e) {
         case Key::Ok:
             activateRow(_nav.sel);
             break;
-        case Key::Left:   // en la fila de volumen, , / ajustan en pasos de 5
-            if (_nav.sel == 2) {
-                sound::setVolumePct(sound::volumePct() - 5);
-                requestRedraw();
-            }
+        case Key::Left:   // , / ajustan el valor de la fila seleccionada
+            if (_nav.sel == 2) sound::setVolumePct(sound::volumePct() - 5);
+            else if (_nav.sel == 3) briefingService.adjustBriefMin(-15);
+            else if (_nav.sel == 4) tzones::cycle(-1);
+            else break;
+            requestRedraw();
             break;
         case Key::Right:
-            if (_nav.sel == 2) {
-                sound::setVolumePct(sound::volumePct() + 5);
-                requestRedraw();
-            }
+            if (_nav.sel == 2) sound::setVolumePct(sound::volumePct() + 5);
+            else if (_nav.sel == 3) briefingService.adjustBriefMin(15);
+            else if (_nav.sel == 4) tzones::cycle(1);
+            else break;
+            requestRedraw();
             break;
         case Key::Back:
             appManager.goBack();
