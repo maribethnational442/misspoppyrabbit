@@ -49,17 +49,34 @@ async function loadCalendarNames(device) {
 function showLastSync(last) {
   if (!last) return;
   const when = new Date(last.at).toLocaleTimeString();
-  const lines = last.results.map((r) =>
-    r.ok ? `[ok] ${calNames[r.cal] ?? r.cal}: ${r.queued} synced, ${r.skipped} skipped` +
-           (r.free !== undefined && r.free < 20 ? ` (!device almost full: ${r.free} slots left)` : "")
-         : `[x] ${calNames[r.cal] ?? r.cal}: ${r.error}`);
+  const lines = last.results.map((r) => {
+    const src = r.src === "capture" ? "tabs" : "ics";
+    return r.ok
+      ? `[ok] ${src} > ${calNames[r.cal] ?? r.cal}: ${r.queued} synced, ${r.skipped} skipped` +
+        (r.free !== undefined && r.free < 20 ? ` (!device almost full: ${r.free} slots left)` : "")
+      : `[x] ${src} > ${calNames[r.cal] ?? r.cal}: ${r.error}`;
+  });
   $("status").innerHTML = `Last sync ${when}\n` + lines.join("\n");
   $("status").className = last.results.every((r) => r.ok) ? "ok" : "err";
 }
 
+function renderCapturedUI(captured, capturedCal) {
+  const n = Object.keys(captured).length;
+  $("cap-count").textContent = `${n} events captured`;
+  const sel = $("cap-cal");
+  sel.innerHTML = "";
+  calNames.forEach((name, ci) => {
+    const o = document.createElement("option");
+    o.value = ci;
+    o.textContent = name;
+    sel.appendChild(o);
+  });
+  sel.value = String(capturedCal);
+}
+
 async function init() {
   const cfg = await chrome.storage.sync.get({
-    device: "http://prabbit.local", feeds: [], auto: true, intervalMin: 60,
+    device: "http://prabbit.local", feeds: [], capturedCal: 0, auto: true, intervalMin: 60,
   });
   $("device").value = cfg.device;
   $("auto").checked = cfg.auto;
@@ -68,14 +85,23 @@ async function init() {
   await loadCalendarNames(cfg.device);
   renderFeeds(cfg.feeds);
 
+  const { captured = {} } = await chrome.storage.local.get("captured");
+  renderCapturedUI(captured, cfg.capturedCal);
+
   const { lastSync } = await chrome.storage.local.get("lastSync");
   showLastSync(lastSync);
 }
+
+$("cap-clear").onclick = async () => {
+  await chrome.storage.local.remove("captured");
+  $("cap-count").textContent = "0 events captured";
+};
 
 async function save() {
   await chrome.storage.sync.set({
     device: $("device").value.trim().replace(/\/$/, "") || "http://prabbit.local",
     feeds: readFeeds(),
+    capturedCal: +($("cap-cal").value || 0),
     auto: $("auto").checked,
     intervalMin: +$("interval").value,
   });

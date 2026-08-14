@@ -21,11 +21,25 @@ the background and pushes the events to the device's
 
 Treat these URLs like passwords — anyone who has one can read that calendar.
 
+## Corporate calendar? (secret address disabled by your admin)
+
+Google Workspace / Outlook admins often disable the secret ICS address. For
+that case the extension has a second capture mode that **cannot be blocked**:
+a content script that reads the events *you are already viewing* in your
+calendar tab — via the accessibility layer (aria-labels), not the fragile
+DOM, in English and Spanish UIs.
+
+Just keep browsing your calendar normally (week by week with `n`): everything
+you see gets captured. The popup shows the running count, you pick the target
+device calendar, and captured events are pushed on every sync. Skipped:
+all-day events and anything without a visible time range.
+
 ## Use
 
 1. Click the rabbit → set your device URL (default `http://prabbit.local`)
 2. Paste up to 4 ICS addresses and map each one to a device calendar
-   (names are loaded live from the device)
+   (names are loaded live from the device) — and/or browse your corporate
+   calendar tab to feed the capture mode
 3. **Sync now**, or enable auto-sync (15m–3h; Chrome's minimum for background
    alarms is ~15 minutes)
 

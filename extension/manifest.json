@@ -13,6 +13,18 @@
     "https://outlook.office.com/*",
     "https://outlook.office365.com/*"
   ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://calendar.google.com/*",
+        "https://outlook.live.com/*",
+        "https://outlook.office.com/*",
+        "https://outlook.office365.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "background": { "service_worker": "background.js" },
   "action": {
     "default_popup": "popup.html",
