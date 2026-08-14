@@ -118,12 +118,17 @@ if (typeof document !== "undefined" && typeof chrome !== "undefined" && chrome.s
   async function scan() {
     pending = false;
     const found = {};
+    let candidates = 0;
     for (const el of document.querySelectorAll("[aria-label]")) {
-      const parsed = parseCandidate(el.getAttribute("aria-label"), el.textContent);
+      const label = el.getAttribute("aria-label");
+      if (label && label.length > 12 && /\d/.test(label)) candidates++;
+      const parsed = parseCandidate(label, el.textContent);
       if (!parsed) continue;
       const uid = `cap-${hashUid(parsed.title + "|" + parsed.start)}`;
       found[uid] = { uid, ...parsed };
     }
+    // Diagnóstico visible en la consola DevTools de la pestaña del calendario
+    console.info(`[MissPoppy] scan: ${candidates} candidatos con aria-label, ${Object.keys(found).length} eventos parseados`);
     if (!Object.keys(found).length) return;
 
     const { captured = {} } = await chrome.storage.local.get("captured");
