@@ -167,6 +167,22 @@
   <div id="empty" hidden>No tasks. The rabbit is proud of you.</div>
 </div>
 
+<div class="card">
+  <h2 id="h-notes">NOTES</h2>
+  <ul id="notes-list"></ul>
+  <div id="notes-empty" hidden>No notes yet.</div>
+  <button id="note-add" style="margin-top:10px" onclick="editNote(0)">+ Note</button>
+  <form id="note-form" hidden style="margin-top:10px" onsubmit="return saveNote()">
+    <textarea id="note-text" rows="4" maxlength="1500"
+      style="width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--darkgray);border-radius:6px;padding:8px;font-family:inherit;font-size:13px"></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button type="submit" id="note-save">Save</button>
+      <button type="button" id="note-cancel" onclick="closeNote()">Cancel</button>
+    </div>
+    <input type="hidden" id="note-id" value="0">
+  </form>
+</div>
+
 <footer>
   <span id="st-batt"></span>
   <span id="st-heap"></span>
@@ -218,7 +234,9 @@ const I18N = {
         impBtn: "Import .ics", impGo: "Import", impCancel: "Cancel",
         impInfo: (n, s) => `${n} events in the next 60 days · ${s} skipped (all-day / unsupported repeats / cancelled)`,
         impNone: "No importable events found in that file.",
-        impDone: (q, d) => `Imported: ${q} ok${d ? `, ${d} failed` : ""}. Re-importing never duplicates.` },
+        impDone: (q, d) => `Imported: ${q} ok${d ? `, ${d} failed` : ""}. Re-importing never duplicates.`,
+        notes: "NOTES", noteAdd: "+ Note", noteEmpty: "No notes yet.",
+        noteDel: "Delete note?", notePh: "Write a note..." },
   es: { tasks: "TAREAS", reset: "Reiniciar", create: "Crear", placeholder: "Nueva tarea...",
         empty: "Sin tareas. El conejo esta orgulloso de ti.", confirmDel: "Borrar tarea?",
         work: "TRABAJO", brk: "DESCANSO", today: "Hoy", prio: ["baja", "media", "alta"],
@@ -230,7 +248,9 @@ const I18N = {
         impBtn: "Importar .ics", impGo: "Importar", impCancel: "Cancelar",
         impInfo: (n, s) => `${n} eventos en los proximos 60 dias · ${s} omitidos (dia completo / repeticiones no soportadas / cancelados)`,
         impNone: "No hay eventos importables en ese archivo.",
-        impDone: (q, d) => `Importados: ${q} ok${d ? `, ${d} fallidos` : ""}. Re-importar nunca duplica.` },
+        impDone: (q, d) => `Importados: ${q} ok${d ? `, ${d} fallidos` : ""}. Re-importar nunca duplica.`,
+        notes: "NOTAS", noteAdd: "+ Nota", noteEmpty: "Aun no hay notas.",
+        noteDel: "Borrar nota?", notePh: "Escribe una nota..." },
 };
 let LANG = "en";
 const T = () => I18N[LANG];
@@ -250,6 +270,12 @@ function applyLang() {
   $("ev-import").textContent = T().impBtn;
   $("imp-go").textContent = T().impGo;
   $("imp-cancel").textContent = T().impCancel;
+  $("h-notes").textContent = T().notes;
+  $("note-add").textContent = T().noteAdd;
+  $("note-save").textContent = T().evSave;
+  $("note-cancel").textContent = T().evCancel;
+  $("note-text").placeholder = T().notePh;
+  renderNotes();
   renderTasks(lastTasks);
   if (lastPomo) renderPomo(lastPomo);
   renderAgenda();
@@ -605,6 +631,75 @@ async function runImport() {
   setTimeout(closeImport, 4000);
 }
 
+// ---------------- Notas ----------------
+let notesIdx = [];
+let audioEl = null;
+
+async function loadNotes() {
+  try {
+    notesIdx = (await (await fetch("/api/notes")).json()).notes || [];
+  } catch { notesIdx = []; }
+  renderNotes();
+}
+
+function renderNotes() {
+  const ul = $("notes-list");
+  ul.innerHTML = "";
+  for (const n of notesIdx) {
+    const li = document.createElement("li");
+    const when = n.id > 1600000000
+        ? new Date(n.id * 1000).toLocaleString([], { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
+        : "#" + n.id;
+    const dur = n.type === "v" ? ` ${String(Math.floor((n.dur||0)/60)).padStart(2,"0")}:${String((n.dur||0)%60).padStart(2,"0")}` : "";
+    li.innerHTML =
+      `<span class="time">${n.type === "v" ? "&#127908;" : "&#128221;"} ${when}${dur}</span>` +
+      `<span class="title"></span>` +
+      (n.type === "v" ? `<span class="del" onclick="playNote(${n.id})">&#9654;</span>` : "") +
+      `<span class="del" onclick="if(confirm('${T().noteDel}'))post('/api/notes/delete?id=${n.id}')">&times;</span>`;
+    const title = li.querySelector(".title");
+    title.textContent = n.type === "t" ? (n.preview || "") : "";
+    if (n.type === "t") {
+      title.style.cursor = "pointer";
+      title.onclick = () => editNote(n.id);
+    }
+    ul.appendChild(li);
+  }
+  $("notes-empty").textContent = T().noteEmpty;
+  $("notes-empty").hidden = notesIdx.length > 0;
+}
+
+function playNote(id) {
+  if (audioEl) { audioEl.pause(); audioEl = null; }
+  audioEl = new Audio(`/api/notes/file?id=${id}`);
+  audioEl.play();
+}
+
+async function editNote(id) {
+  $("note-id").value = id;
+  $("note-text").value = id ? await (await fetch(`/api/notes/file?id=${id}`)).text() : "";
+  $("note-form").hidden = false;
+  $("note-add").hidden = true;
+  $("note-text").focus();
+}
+
+function closeNote() {
+  $("note-form").hidden = true;
+  $("note-add").hidden = false;
+}
+
+function saveNote() {
+  const content = $("note-text").value.trim();
+  if (content) {
+    fetch("/api/notes/text", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: +$("note-id").value, content }),
+    });
+  }
+  closeNote();
+  return false;
+}
+
 async function refreshStatus() {
   try {
     const s = await (await fetch("/api/status")).json();
@@ -634,6 +729,7 @@ function connectWS() {
       agenda = await (await fetch("/api/events")).json();
       renderAgenda();
     }
+    if (msg.type === "notesDirty") loadNotes();
   };
 }
 
@@ -643,6 +739,7 @@ function connectWS() {
   renderTasks(await (await fetch("/api/tasks")).json());
   renderPomo(await (await fetch("/api/pomodoro")).json());
   agenda = await (await fetch("/api/events")).json();
+  await loadNotes();
   applyLang();          // pinta agenda + textos con el idioma por defecto
   refreshStatus();
   setInterval(refreshStatus, 10000);

@@ -34,6 +34,7 @@ private:
 
     uint32_t _lastTaskRev = 0;
     uint32_t _lastAgendaRev = 0;
+    uint32_t _lastNotesRev = 0;
     uint32_t _lastPomoRev = 0;
     int      _lastPomoSec = -1;
     uint32_t _lastCleanup = 0;

@@ -6,7 +6,11 @@
 #include "CalendarStore.h"
 #include "Config.h"
 #include "Lang.h"
+#include "NotesService.h"
+#include "StorageService.h"
 #include "TaskStore.h"
+#include <SD.h>
+#include <memory>
 #include "PomodoroService.h"
 #include "WifiService.h"
 
@@ -75,6 +79,10 @@ void WebService::loop() {
         if (calendarStore.revision() != _lastAgendaRev) {
             _lastAgendaRev = calendarStore.revision();
             broadcastAgenda();
+        }
+        if (notesService.revision() != _lastNotesRev && !notesService.recording()) {
+            _lastNotesRev = notesService.revision();
+            _ws.textAll("{\"type\":\"notesDirty\"}");
         }
         const bool running = pomodoroService.run() == PomodoroService::Run::Running;
         const int sec = (int)(pomodoroService.remainingMs() / 1000);
@@ -168,6 +176,10 @@ void WebService::setupRoutes() {
     auto* importHandler = new AsyncCallbackJsonWebHandler(
         "/api/events/import",
         [](AsyncWebServerRequest* req, JsonVariant& json) {
+            if (notesService.recording()) {   // grabando: la SD es del micrófono
+                req->send(503, "application/json", "{\"error\":\"recording\"}");
+                return;
+            }
             const JsonObject root = json.as<JsonObject>();
             const uint8_t defCal = (uint8_t)((int)(root["calendarId"] | 0) % 4);
             int queued = 0, dropped = 0;
@@ -242,6 +254,75 @@ void WebService::setupRoutes() {
             (uint8_t)req->getParam("id")->value().toInt(),
             req->getParam("name")->value().c_str());
         req->send(ok ? 202 : 503, "application/json", "{}");
+    });
+
+    // --- Notas (rutas específicas ANTES que /api/notes: match por prefijo) ---
+
+    // Contenido de una nota (texto o WAV) por chunks: cada lectura toma el
+    // SdLock un instante — el loop principal y este stream conviven en paz.
+    _server.on("/api/notes/file", HTTP_GET, [](AsyncWebServerRequest* req) {
+        if (notesService.recording()) {
+            req->send(503, "application/json", "{\"error\":\"recording\"}");
+            return;
+        }
+        char path[48];
+        NotesService::Type type;
+        if (!notesService.pathFor(idParam(req), path, sizeof(path), &type)) {
+            req->send(404, "application/json", "{}");
+            return;
+        }
+        auto file = std::make_shared<File>();
+        {
+            SdLock lock;
+            *file = SD.open(path, FILE_READ);
+        }
+        if (!*file) {
+            req->send(404, "application/json", "{}");
+            return;
+        }
+        AsyncWebServerResponse* r = req->beginChunkedResponse(
+            (type == NotesService::Type::Voice) ? "audio/wav" : "text/plain; charset=utf-8",
+            [file](uint8_t* buf, size_t maxLen, size_t) -> size_t {
+                SdLock lock;
+                if (!*file) return 0;
+                const int n = file->read(buf, (maxLen > 1024) ? 1024 : maxLen);
+                if (n <= 0) {
+                    file->close();
+                    return 0;
+                }
+                return (size_t)n;
+            });
+        req->send(r);
+    });
+
+    _server.on("/api/notes/delete", HTTP_POST, [](AsyncWebServerRequest* req) {
+        const bool ok = notesService.enqueueRemove(idParam(req));
+        req->send(ok ? 202 : 503, "application/json", "{}");
+    });
+
+    auto* noteTextHandler = new AsyncCallbackJsonWebHandler(
+        "/api/notes/text",
+        [](AsyncWebServerRequest* req, JsonVariant& json) {
+            if (notesService.recording()) {
+                req->send(503, "application/json", "{\"error\":\"recording\"}");
+                return;
+            }
+            const JsonObject o = json.as<JsonObject>();
+            const char* content = o["content"] | "";
+            if (content[0] == '\0') {
+                req->send(400, "application/json", "{\"error\":\"content\"}");
+                return;
+            }
+            const bool ok = notesService.enqueueSaveText(o["id"] | 0u, content);
+            req->send(ok ? 202 : 503, "application/json", "{}");
+        });
+    noteTextHandler->setMethod(HTTP_POST);
+    _server.addHandler(noteTextHandler);
+
+    _server.on("/api/notes", HTTP_GET, [](AsyncWebServerRequest* req) {
+        String out;
+        notesService.indexJson(out);
+        req->send(200, "application/json", out);
     });
 
     _server.on("/api/pomodoro", HTTP_GET, [this](AsyncWebServerRequest* req) {
