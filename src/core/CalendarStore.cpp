@@ -205,29 +205,44 @@ void CalendarStore::apply(const Cmd& cmd) {
 
 // --- Snapshot para la web ---------------------------------------------------
 
+// Serializa evento a evento con un JsonDocument minúsculo reutilizado:
+// el pico de RAM es solo el String de salida (~140B/evento), no el árbol
+// completo + salida a la vez. Con 300 eventos esto es la diferencia entre
+// ~40KB y ~90KB de pico en un chip sin PSRAM.
 void CalendarStore::snapshotJson(String& out) {
-    JsonDocument doc;
-    JsonArray cals = doc["calendars"].to<JsonArray>();
-    JsonArray evs  = doc["events"].to<JsonArray>();
-    {
-        Lock lock(_mutex);
-        for (int i = 0; i < NUM_CALENDARS; ++i) {
-            JsonObject o = cals.add<JsonObject>();
-            o["id"]   = _cals[i].id;
-            o["name"] = _cals[i].name;
-        }
-        for (int i = 0; i < _count; ++i) {
-            JsonObject o = evs.add<JsonObject>();
-            o["id"]    = _events[i].id;
-            o["title"] = _events[i].title;
-            o["start"] = (uint32_t)_events[i].start;
-            o["end"]   = (uint32_t)_events[i].end;
-            o["cal"]   = _events[i].calendarId;
-            o["done"]  = (bool)(_events[i].flags & models::EVT_DONE);
-            o["rem"]   = (bool)(_events[i].flags & models::EVT_REMINDER);
-        }
+    out = "";
+    out.reserve(256 + (size_t)_count * 140);
+    out += "{\"calendars\":[";
+
+    JsonDocument item;   // reutilizado: ArduinoJson escapa títulos con comillas
+    String tmp;
+    Lock lock(_mutex);
+
+    for (int i = 0; i < NUM_CALENDARS; ++i) {
+        item.clear();
+        item["id"] = _cals[i].id;
+        item["name"] = _cals[i].name;
+        tmp = "";
+        serializeJson(item, tmp);
+        if (i > 0) out += ',';
+        out += tmp;
     }
-    serializeJson(doc, out);
+    out += "],\"events\":[";
+    for (int i = 0; i < _count; ++i) {
+        item.clear();
+        item["id"]    = _events[i].id;
+        item["title"] = _events[i].title;
+        item["start"] = (uint32_t)_events[i].start;
+        item["end"]   = (uint32_t)_events[i].end;
+        item["cal"]   = _events[i].calendarId;
+        item["done"]  = (bool)(_events[i].flags & models::EVT_DONE);
+        item["rem"]   = (bool)(_events[i].flags & models::EVT_REMINDER);
+        tmp = "";
+        serializeJson(item, tmp);
+        if (i > 0) out += ',';
+        out += tmp;
+    }
+    out += "]}";
 }
 
 // --- Internos ---------------------------------------------------------------

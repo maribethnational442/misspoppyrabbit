@@ -18,9 +18,11 @@ class String;
 
 class CalendarStore {
 public:
-    // 200 huecos ≈ 14KB de RAM: 4 calendarios reales a 60 días vista caben.
-    // (96 se quedó corto: un solo calendario cargado ya los llenaba.)
-    static constexpr int MAX_EVENTS = 200;
+    // 300 huecos ≈ 19KB de RAM estática: 4 calendarios cargados a 60 días
+    // vista. El límite real no es este array sino el PICO transitorio al
+    // serializar JSON para la web — por eso snapshotJson() serializa evento
+    // a evento (un solo buffer de salida, sin árbol completo en memoria).
+    static constexpr int MAX_EVENTS = 300;
     static constexpr int NUM_CALENDARS = 4;
 
     void begin();

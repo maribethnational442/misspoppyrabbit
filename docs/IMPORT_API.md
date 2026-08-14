@@ -42,7 +42,7 @@ handled, so browser extensions can POST directly.
 
 Recommended batch size: **≤ 40 events per request** (the device has 512KB of
 RAM and no PSRAM); send multiple requests for more. The device stores at most
-**200 events** and prunes those that ended over 7 days ago at boot.
+**300 events** and prunes those that ended over 7 days ago at boot.
 
 ## Response
 

@@ -626,11 +626,14 @@ function connectWS() {
   ws = new WebSocket(`ws://${location.host}/ws`);
   ws.onopen = () => $("wsdot").classList.add("on");
   ws.onclose = () => { $("wsdot").classList.remove("on"); setTimeout(connectWS, 3000); };
-  ws.onmessage = (ev) => {
+  ws.onmessage = async (ev) => {
     const msg = JSON.parse(ev.data);
     if (msg.type === "tasks") renderTasks(msg.tasks);
     if (msg.type === "pomo") renderPomo(msg.pomo);
-    if (msg.type === "agenda") { agenda = msg.agenda; renderAgenda(); }
+    if (msg.type === "agendaDirty") {   // la agenda pesa: se re-pide por GET
+      agenda = await (await fetch("/api/events")).json();
+      renderAgenda();
+    }
   };
 }
 

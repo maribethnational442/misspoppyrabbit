@@ -111,9 +111,9 @@ void WebService::setupRoutes() {
             String pomo;
             buildPomodoroJson(pomo);
             client->text(String("{\"type\":\"pomo\",\"pomo\":") + pomo + "}");
-            String agenda;
-            calendarStore.snapshotJson(agenda);
-            client->text(String("{\"type\":\"agenda\",\"agenda\":") + agenda + "}");
+            // La agenda NO viaja por WS (puede pesar ~40KB con 300 eventos):
+            // se avisa "sucia" y el navegador la pide por GET /api/events.
+            client->text("{\"type\":\"agendaDirty\"}");
         }
     });
     _server.addHandler(&_ws);
@@ -317,7 +317,6 @@ void WebService::broadcastPomodoro() {
 }
 
 void WebService::broadcastAgenda() {
-    String agenda;
-    calendarStore.snapshotJson(agenda);
-    _ws.textAll(String("{\"type\":\"agenda\",\"agenda\":") + agenda + "}");
+    // Ping ligero: cada cliente re-pide GET /api/events cuando le convenga
+    _ws.textAll("{\"type\":\"agendaDirty\"}");
 }
