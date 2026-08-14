@@ -152,6 +152,17 @@ static const char* const PROP_CLOCK[PROP_H] = {
     "        ",
 };
 
+static const char* const PROP_NOTES[PROP_H] = {
+    "      ##",
+    "     #R#",
+    "    ##R ",
+    "   ###  ",
+    "  ###   ",
+    " ###    ",
+    "###     ",
+    "#       ",
+};
+
 static const char* const PROP_ABOUT[PROP_H] = {
     " RR RR  ",
     "RRRRRRR ",

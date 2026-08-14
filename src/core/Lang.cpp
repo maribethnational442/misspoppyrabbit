@@ -68,6 +68,16 @@ const char* const EN[N] = {
     "> Timezone: %s",
     "; . scroll   other key: close",
     "Next: %s %d %s %02d:%02d",
+    // Notas y bloqueo (v0.7)
+    "Notes",
+    "No notes. [n] text, [m] voice.",
+    "n:text m:voice d:del ENTER:open",
+    "[ENTER] save   [`] cancel",
+    "[ENTER] save   [`] discard",
+    "Mic or SD not available",
+    "> Voice limit: %ds (, /)",
+    "Fn+L to unlock",
+    "voice note",
 };
 
 const char* const ES[N] = {
@@ -129,6 +139,16 @@ const char* const ES[N] = {
     "> Zona horaria: %s",
     "; . scroll   otra tecla: cerrar",
     "Proximo: %s %d %s %02d:%02d",
+    // Notas y bloqueo (v0.7)
+    "Notas",
+    "Sin notas. [n] texto, [m] voz.",
+    "n:texto m:voz d:borrar ENTER:abrir",
+    "[ENTER] guardar   [`] cancelar",
+    "[ENTER] guardar   [`] descartar",
+    "Mic o SD no disponibles",
+    "> Limite de voz: %ds (, /)",
+    "Fn+L para desbloquear",
+    "nota de voz",
 };
 
 const char* const DAYS_EN[7]    = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};

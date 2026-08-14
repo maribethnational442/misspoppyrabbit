@@ -110,6 +110,59 @@ static const char* const AGENDA[ICON_H] = {
     "                ",
 };
 
+// Notas (página con líneas)
+static const char* const NOTES[ICON_H] = {
+    "                ",
+    "   ########     ",
+    "   #      ##    ",
+    "   # #### ###   ",
+    "   #        #   ",
+    "   # ###### #   ",
+    "   #        #   ",
+    "   # ###### #   ",
+    "   #        #   ",
+    "   # ####   #   ",
+    "   #        #   ",
+    "   ##########   ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+};
+
+// Minis 8x8 para las filas de la lista de notas
+constexpr int MINI_H = 8;
+static const char* const MINI_TXT[MINI_H] = {
+    " ###### ",
+    " #    # ",
+    " # ## # ",
+    " #    # ",
+    " # ## # ",
+    " #    # ",
+    " ###### ",
+    "        ",
+};
+static const char* const MINI_MIC[MINI_H] = {
+    "   ##   ",
+    "  RRRR  ",
+    "  RRRR  ",
+    "  RRRR  ",
+    "   ##   ",
+    " # ## # ",
+    "  ####  ",
+    "   ##   ",
+};
+static const char* const MINI_LOCK[MINI_H] = {
+    "  ####  ",
+    " #    # ",
+    " #    # ",
+    "########",
+    "###--###",
+    "###--###",
+    "########",
+    "########",
+};
+
 // Información (About)
 static const char* const INFO[ICON_H] = {
     "                ",

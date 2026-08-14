@@ -46,6 +46,9 @@ enum class Str : uint8_t {
     BriefTitle, BriefEmpty, BriefConflictFmt, BriefRowFmt, TzRowFmt,
     BriefScrollHint,
     AgendaNextFmt,
+    // Notas y bloqueo (v0.7)
+    AppNotes, NotesEmpty, NotesHint, EditorHint,
+    RecHint, RecFail, RecLimitRowFmt, LockHint, VoiceLabel,
     COUNT
 };
 
