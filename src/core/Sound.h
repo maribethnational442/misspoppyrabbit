@@ -6,6 +6,11 @@
 // Agenda usen la misma "voz" del OS.
 namespace sound {
 
+// Volumen maestro (0-100%), persistido en NVS. Implementado en Sound.cpp.
+void begin();                 // carga el volumen guardado y lo aplica
+void setVolumePct(int pct);   // ajusta, guarda y suena un click de muestra
+int  volumePct();
+
 // (Las alertas de agenda usan MelodyPlayer — ver core/Melody.h)
 inline void click()      { M5Cardputer.Speaker.tone(2000, 30); }   // tecla/acción
 inline void workDone()   { M5Cardputer.Speaker.tone(880, 400); }   // fin de trabajo

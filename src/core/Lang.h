@@ -36,6 +36,8 @@ enum class Str : uint8_t {
     AgendaEmptyDay, AgendaHintDay, AgendaHintWeek,
     QuickTitle, QuickWhenHint, QuickSaveHint, QuickToday, QuickTomorrow,
     AlertIn10, AlertIn2, AlertConfirm, AlertConfirmHint, AlertDismissHint,
+    // Ajustes extra
+    VolumeRowFmt,
     COUNT
 };
 

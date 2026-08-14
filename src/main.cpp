@@ -8,6 +8,7 @@
 
 #include "core/AppManager.h"
 #include "core/Lang.h"
+#include "core/Sound.h"
 #include "core/WifiService.h"
 #include "core/StorageService.h"
 #include "core/TaskStore.h"
@@ -43,6 +44,7 @@ void setup() {
     appManager.begin();             // crea el canvas de 240×135
 
     lang::begin();                  // idioma guardado (defecto: ingles)
+    sound::begin();                 // volumen guardado
     wifiService.begin();            // no bloquea: conecta durante el boot screen
     storage.begin();                // monta la microSD (si hay)
     taskStore.begin();              // carga las tareas desde la SD

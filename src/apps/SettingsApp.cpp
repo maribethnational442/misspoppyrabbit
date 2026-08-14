@@ -1,5 +1,6 @@
 #include "SettingsApp.h"
 #include "../core/AppManager.h"
+#include "../core/Sound.h"
 #include "../ui/Theme.h"
 #include "../ui/assets/Icons.h"
 #include <WiFi.h>
@@ -53,13 +54,13 @@ void SettingsApp::update(uint32_t dtMs) {
     if (_mode == Mode::List && _headerScroll.tick(dtMs)) requestRedraw();
 }
 
-// Filas: [0] Buscar redes | [1] Idioma | [2] Olvidar red (si hay) | [3..] redes
+// Filas: [0] Buscar redes | [1] Idioma | [2] Volumen | [3] Olvidar red | [4..] redes
 int SettingsApp::rowCount() const {
-    return 2 + (wifiService.hasCredentials() ? 1 : 0) + _netCount;
+    return 3 + (wifiService.hasCredentials() ? 1 : 0) + _netCount;
 }
 
 void SettingsApp::activateRow(int row) {
-    const int netBase = 2 + (wifiService.hasCredentials() ? 1 : 0);
+    const int netBase = 3 + (wifiService.hasCredentials() ? 1 : 0);
 
     if (row == 0) {
         if (!wifiService.scanning()) wifiService.startScan();
@@ -73,7 +74,13 @@ void SettingsApp::activateRow(int row) {
         requestRedraw();
         return;
     }
-    if (wifiService.hasCredentials() && row == 2) {
+    if (row == 2) {
+        // ENTER también sirve: cicla 0→25→50→75→100→0
+        sound::setVolumePct(sound::volumePct() >= 100 ? 0 : sound::volumePct() + 25);
+        requestRedraw();
+        return;
+    }
+    if (wifiService.hasCredentials() && row == 3) {
         wifiService.forget();
         _nav.reset();
         requestRedraw();
@@ -128,7 +135,7 @@ void SettingsApp::drawList(M5Canvas& c) {
     c.drawFastHLine(0, LIST_Y - 4, SCREEN_W, DARKGRAY);
 
     // Lista con scroll
-    const int netBase = 2 + (wifiService.hasCredentials() ? 1 : 0);
+    const int netBase = 3 + (wifiService.hasCredentials() ? 1 : 0);
     for (int v = 0; v < _nav.visible; ++v) {
         const int row = _nav.scroll + v;
         if (row >= rowCount()) break;
@@ -144,7 +151,9 @@ void SettingsApp::drawList(M5Canvas& c) {
                      wifiService.scanning() ? tr(Str::ScanningRow) : tr(Str::ScanRow));
         } else if (row == 1) {
             snprintf(line, sizeof(line), tr(Str::LanguageRowFmt), lang::displayName());
-        } else if (wifiService.hasCredentials() && row == 2) {
+        } else if (row == 2) {
+            snprintf(line, sizeof(line), tr(Str::VolumeRowFmt), sound::volumePct());
+        } else if (wifiService.hasCredentials() && row == 3) {
             snprintf(line, sizeof(line), tr(Str::ForgetRowFmt), wifiService.ssid());
         } else {
             const Net& net = _nets[row - netBase];
@@ -202,6 +211,18 @@ void SettingsApp::onKey(const KeyEvent& e) {
     switch (e.key) {
         case Key::Ok:
             activateRow(_nav.sel);
+            break;
+        case Key::Left:   // en la fila de volumen, , / ajustan en pasos de 5
+            if (_nav.sel == 2) {
+                sound::setVolumePct(sound::volumePct() - 5);
+                requestRedraw();
+            }
+            break;
+        case Key::Right:
+            if (_nav.sel == 2) {
+                sound::setVolumePct(sound::volumePct() + 5);
+                requestRedraw();
+            }
             break;
         case Key::Back:
             appManager.goBack();

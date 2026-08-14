@@ -50,6 +50,8 @@ const char* const EN[N] = {
     "Are you in this meeting?",
     "[ENTER] yes, I'm in   [`] ask in 5 min",
     "any key to dismiss",
+    // Ajustes extra
+    "> Volume: %d%% (, / adjust)",
 };
 
 const char* const ES[N] = {
@@ -93,6 +95,8 @@ const char* const ES[N] = {
     "Estas ya en la reunion?",
     "[ENTER] si, estoy   [`] en 5 min",
     "cualquier tecla para cerrar",
+    // Ajustes extra
+    "> Volumen: %d%% (, / ajustar)",
 };
 
 const char* const DAYS_EN[7]    = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
