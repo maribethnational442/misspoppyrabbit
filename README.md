@@ -24,7 +24,8 @@ Miss Poppy Rabbit is a custom firmware — a small launcher-plus-apps "OS" — f
 [M5Stack Cardputer](https://docs.m5stack.com/en/core/Cardputer) and
 Cardputer ADV. It turns the little card-sized computer into a personal
 assistant that lives entirely on your desk: **no cloud, no accounts, no
-subscriptions**. Your data stays on a microSD card in your pocket.
+subscriptions — 117% local**. Your data stays on a microSD card in your
+pocket.
 
 It was built around one core need: **not missing meetings**. Everything else
 grew around that.
@@ -189,3 +190,6 @@ your own rabbit.
 ---
 
 <div align="center">🐰🌺 <em>Built with a Cardputer, patience, a rabbit — and a poppy.</em></div>
+
+<!-- If you ever type 117 in the launcher... the rabbit knows. -->
+

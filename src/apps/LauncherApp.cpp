@@ -5,6 +5,7 @@
 #include "../ui/assets/PoppySprites.h"
 #include "../core/Config.h"
 #include "../core/Lang.h"
+#include "../core/Melody.h"
 #include <cmath>
 
 namespace {
@@ -26,6 +27,11 @@ const char* const* const PROPS[] = {
 };
 constexpr int NUM_PROPS = sizeof(PROPS) / sizeof(PROPS[0]);
 constexpr uint32_t REACT_MS = 400;   // duración de la reacción completa
+
+// --- 🌺 ---
+const char EGG_CODE[] = "117";
+constexpr uint32_t EGG_MS = 2000;
+const Note EGG_FANFARE[] = { {659, 90}, {784, 90}, {988, 90}, {1319, 300} };
 }
 
 void LauncherApp::onEnter() {
@@ -54,6 +60,10 @@ void LauncherApp::update(uint32_t dtMs) {
     // (el prop rebota y el conejo despliega las orejas)
     if (_reactT < REACT_MS) {
         _reactT += dtMs;
+        requestRedraw();
+    }
+    if (_eggT < EGG_MS) {   // celebración en curso
+        _eggT += dtMs;
         requestRedraw();
     }
 
@@ -90,28 +100,31 @@ void LauncherApp::draw(M5Canvas& c) {
         c.drawString(app->name(), LIST_X + 30, rowY + (ROW_H - 2) / 2);
     }
 
-    // Mascota + nombre del OS a la derecha. Durante la reacción, orejas
-    // desplegadas; el resto del tiempo, el ciclo normal de reposo.
+    // Mascota + nombre del OS a la derecha. Durante la reacción (o la
+    // celebración 🌺), orejas desplegadas; si no, el ciclo normal de reposo.
+    const bool egg = _eggT < EGG_MS;
     const char* const* mascot =
-        (_reactT < 200)       ? sprites::RABBIT_PERK :
-        (_mascotFrame == 1)   ? sprites::RABBIT_BLINK :
-        (_mascotFrame == 2)   ? sprites::RABBIT_TWITCH : sprites::RABBIT_IDLE;
+        (egg || _reactT < 200) ? sprites::RABBIT_PERK :
+        (_mascotFrame == 1)    ? sprites::RABBIT_BLINK :
+        (_mascotFrame == 2)    ? sprites::RABBIT_TWITCH : sprites::RABBIT_IDLE;
     pixelart::draw(c, mascot, sprites::RABBIT_H, MASCOT_X, MASCOT_Y, MASCOT_SCALE);
 
-    // Prop del item seleccionado, con botecito al aparecer (cae de -6px a 0)
-    if (_sel < NUM_PROPS) {
+    // Prop del item seleccionado, con botecito al aparecer (cae de -6px a 0).
+    // Durante la celebración el conejo enseña SU poppy, elija lo que elijas.
+    if (_sel < NUM_PROPS || egg) {
         const int bounce = (_reactT < 300) ? -(int)((300 - _reactT) / 50) : 0;
-        pixelart::draw(c, PROPS[_sel], sprites::PROP_H,
+        pixelart::draw(c, egg ? sprites::PROP_ABOUT : PROPS[_sel], sprites::PROP_H,
                        MASCOT_X - 22, MASCOT_Y + 14 + bounce, 2);
     }
 
     c.setTextDatum(textdatum_t::top_center);
     c.setTextColor(POPPY);
     // Centrado bajo la mascota, pero sin salirse del borde derecho
+    const char* name = egg ? "* 117 *" : config::OS_NAME_SHORT;
     int nameCx = MASCOT_X + (sprites::RABBIT_W * MASCOT_SCALE) / 2;
-    const int half = c.textWidth(config::OS_NAME_SHORT) / 2;
+    const int half = c.textWidth(name) / 2;
     if (nameCx + half > SCREEN_W - 2) nameCx = SCREEN_W - 2 - half;
-    c.drawString(config::OS_NAME_SHORT, nameCx,
+    c.drawString(name, nameCx,
                  MASCOT_Y + sprites::RABBIT_H * MASCOT_SCALE + 6);
 
     // Ayuda de teclas abajo
@@ -136,6 +149,19 @@ void LauncherApp::onKey(const KeyEvent& e) {
             break;
         case Key::Ok:
             appManager.launch(appManager.apps()[_sel]);
+            break;
+        case Key::Char:
+            // 🌺 El conejo sabe contar hasta 117
+            if (e.ch == EGG_CODE[_eggIdx]) {
+                if (EGG_CODE[++_eggIdx] == '\0') {
+                    _eggIdx = 0;
+                    _eggT = 0;
+                    melodyPlayer.play(EGG_FANFARE, sizeof(EGG_FANFARE) / sizeof(Note), 0);
+                    requestRedraw();
+                }
+            } else {
+                _eggIdx = (e.ch == EGG_CODE[0]) ? 1 : 0;
+            }
             break;
         default:
             break;

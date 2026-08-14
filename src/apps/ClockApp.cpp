@@ -81,7 +81,9 @@ void ClockApp::draw(M5Canvas& c) {
     char buf[16];
     snprintf(buf, sizeof(buf), "%02d:%02d:%02d", t.tm_hour, t.tm_min, t.tm_sec);
     c.setTextSize(4);
-    c.setTextColor(PRIMARY);
+    // A la 1:17 (y 13:17) la hora florece en poppy. Quien lo note, lo notará.
+    const bool poppyMinute = (t.tm_hour % 12 == 1) && (t.tm_min == 17);
+    c.setTextColor(poppyMinute ? POPPY : PRIMARY);
     c.drawString(buf, SCREEN_W / 2, 48);
 
     char date[32];

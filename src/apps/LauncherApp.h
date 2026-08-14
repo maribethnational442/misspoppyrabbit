@@ -18,4 +18,6 @@ private:
     uint32_t _mascotT = 0;      // reloj de la animación de la mascota
     int      _mascotFrame = 0;
     uint32_t _reactT = 9999;    // ms desde el último cambio de selección
+    uint8_t  _eggIdx = 0;       // progreso tecleando cierto número... 🌺
+    uint32_t _eggT = 99999;     // ms de celebración restante-inverso
 };
