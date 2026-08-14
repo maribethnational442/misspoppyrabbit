@@ -26,12 +26,14 @@ private:
     void buildPomodoroJson(String& out);
     void broadcastTasks();
     void broadcastPomodoro();
+    void broadcastAgenda();
 
     AsyncWebServer  _server{80};
     AsyncWebSocket  _ws{"/ws"};
     bool _started = false;
 
     uint32_t _lastTaskRev = 0;
+    uint32_t _lastAgendaRev = 0;
     uint32_t _lastPomoRev = 0;
     int      _lastPomoSec = -1;
     uint32_t _lastCleanup = 0;

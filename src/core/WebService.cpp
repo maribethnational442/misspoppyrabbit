@@ -2,6 +2,7 @@
 #include <ESPmDNS.h>
 #include <LittleFS.h>
 #include <M5Cardputer.h>
+#include "CalendarStore.h"
 #include "Config.h"
 #include "Lang.h"
 #include "TaskStore.h"
@@ -57,6 +58,10 @@ void WebService::loop() {
             _lastTaskRev = taskStore.revision();
             broadcastTasks();
         }
+        if (calendarStore.revision() != _lastAgendaRev) {
+            _lastAgendaRev = calendarStore.revision();
+            broadcastAgenda();
+        }
         const bool running = pomodoroService.run() == PomodoroService::Run::Running;
         const int sec = (int)(pomodoroService.remainingMs() / 1000);
         if (pomodoroService.revision() != _lastPomoRev || (running && sec != _lastPomoSec)) {
@@ -89,6 +94,9 @@ void WebService::setupRoutes() {
             String pomo;
             buildPomodoroJson(pomo);
             client->text(String("{\"type\":\"pomo\",\"pomo\":") + pomo + "}");
+            String agenda;
+            calendarStore.snapshotJson(agenda);
+            client->text(String("{\"type\":\"agenda\",\"agenda\":") + agenda + "}");
         }
     });
     _server.addHandler(&_ws);
@@ -135,6 +143,47 @@ void WebService::setupRoutes() {
         const bool ok = taskStore.enqueueAdd(p->value().c_str());
         req->send(ok ? 202 : 503, "application/json",
                   ok ? "{\"queued\":true}" : "{\"error\":\"cola llena\"}");
+    });
+
+    // --- Agenda (rutas específicas primero, como siempre) --------------------
+    _server.on("/api/events/delete", HTTP_POST, [](AsyncWebServerRequest* req) {
+        const bool ok = calendarStore.enqueueRemove(idParam(req));
+        req->send(ok ? 202 : 503, "application/json", "{}");
+    });
+
+    _server.on("/api/events", HTTP_GET, [](AsyncWebServerRequest* req) {
+        String out;
+        calendarStore.snapshotJson(out);
+        req->send(200, "application/json", out);
+    });
+
+    // Crear/editar por query params: title, start, end (epoch seg), cal, [id]
+    _server.on("/api/events", HTTP_POST, [](AsyncWebServerRequest* req) {
+        if (!req->hasParam("title") || !req->hasParam("start") || !req->hasParam("end")) {
+            req->send(400, "application/json", "{\"error\":\"title/start/end\"}");
+            return;
+        }
+        models::Event e = {};
+        e.id = req->hasParam("id") ? (uint32_t)req->getParam("id")->value().toInt() : 0;
+        strncpy(e.title, req->getParam("title")->value().c_str(), sizeof(e.title) - 1);
+        e.start = (time_t)strtoul(req->getParam("start")->value().c_str(), nullptr, 10);
+        e.end   = (time_t)strtoul(req->getParam("end")->value().c_str(), nullptr, 10);
+        e.calendarId = req->hasParam("cal")
+                           ? (uint8_t)(req->getParam("cal")->value().toInt() % 4) : 0;
+        e.alertMinBefore = 10;
+        const bool ok = (e.end > e.start) && calendarStore.enqueueUpsert(e);
+        req->send(ok ? 202 : 400, "application/json", "{}");
+    });
+
+    _server.on("/api/calendars/rename", HTTP_POST, [](AsyncWebServerRequest* req) {
+        if (!req->hasParam("id") || !req->hasParam("name")) {
+            req->send(400, "application/json", "{}");
+            return;
+        }
+        const bool ok = calendarStore.enqueueRename(
+            (uint8_t)req->getParam("id")->value().toInt(),
+            req->getParam("name")->value().c_str());
+        req->send(ok ? 202 : 503, "application/json", "{}");
     });
 
     _server.on("/api/pomodoro", HTTP_GET, [this](AsyncWebServerRequest* req) {
@@ -197,4 +246,10 @@ void WebService::broadcastPomodoro() {
     String pomo;
     buildPomodoroJson(pomo);
     _ws.textAll(String("{\"type\":\"pomo\",\"pomo\":") + pomo + "}");
+}
+
+void WebService::broadcastAgenda() {
+    String agenda;
+    calendarStore.snapshotJson(agenda);
+    _ws.textAll(String("{\"type\":\"agenda\",\"agenda\":") + agenda + "}");
 }
