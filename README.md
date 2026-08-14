@@ -134,6 +134,10 @@ device photos coming soon.*
 |---|---|---|
 | ![Pomodoro](docs/screenshots/pomodoro.svg) | ![Clock](docs/screenshots/clock.svg) | ![Web UI](docs/screenshots/webui.svg) |
 
+| Notes | Voice memo | Pocket lock |
+|---|---|---|
+| ![Notes](docs/screenshots/notes.svg) | ![Voice memo](docs/screenshots/recorder.svg) | ![Pocket lock](docs/screenshots/lock.svg) |
+
 ## Installing it on your Cardputer
 
 Works on both the **original Cardputer** and the **Cardputer ADV** — same
