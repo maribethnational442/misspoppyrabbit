@@ -11,7 +11,8 @@
 BriefingApp briefingApp;
 
 namespace {
-constexpr int MAX_ROWS = 6;
+constexpr int MAX_ROWS = 6;    // visibles a la vez; con ; . se scrollea
+constexpr int MAX_ITEMS = 24;  // tope razonable de cosas en un mismo día
 
 struct DayItem {
     const models::Event* e;
@@ -66,9 +67,9 @@ void BriefingApp::draw(M5Canvas& c) {
     c.setTextColor(PRIMARY);
     c.drawString(tr(Str::BriefTitle), 14, 22);
 
-    DayItem items[MAX_ROWS + 6];
+    DayItem items[MAX_ITEMS];
     int conflicts = 0;
-    const int cnt = collectToday(items, MAX_ROWS + 6, conflicts);
+    _count = collectToday(items, MAX_ITEMS, conflicts);
 
     c.setTextSize(1);
     if (conflicts > 0) {
@@ -78,7 +79,7 @@ void BriefingApp::draw(M5Canvas& c) {
         c.drawString(line, 14, 42);
     }
 
-    if (cnt == 0) {
+    if (_count == 0) {
         // Día libre: el conejo aprueba
         pixelart::draw(c, sprites::RABBIT_IDLE, sprites::RABBIT_H, 104, 52, 2);
         c.setTextDatum(textdatum_t::top_center);
@@ -87,9 +88,11 @@ void BriefingApp::draw(M5Canvas& c) {
     }
 
     const int listY = (conflicts > 0) ? 54 : 44;
-    for (int i = 0; i < cnt && i < MAX_ROWS; ++i) {
+    for (int v = 0; v < MAX_ROWS; ++v) {
+        const int i = _scroll + v;
+        if (i >= _count) break;
         const models::Event& e = *items[i].e;
-        const int y = listY + i * 12;
+        const int y = listY + v * 12;
         struct tm ts;
         localtime_r(&e.start, &ts);
         c.fillRect(14, y, 3, 9, CALENDAR_COLORS[e.calendarId % 4]);
@@ -101,20 +104,35 @@ void BriefingApp::draw(M5Canvas& c) {
                        : (e.flags & models::EVT_REMINDER) ? GRAY : PRIMARY);
         c.drawString(line, 22, y + 1);
     }
-    if (cnt > MAX_ROWS) {
+
+    // Indicadores de que hay más arriba/abajo
+    c.setTextColor(GRAY);
+    if (_scroll > 0) c.drawString("^", SCREEN_W - 18, listY);
+    if (_scroll + MAX_ROWS < _count) {
         char more[12];
-        snprintf(more, sizeof(more), "+%d...", cnt - MAX_ROWS);
-        c.setTextColor(GRAY);
-        c.drawString(more, 22, listY + MAX_ROWS * 12 + 1);
+        snprintf(more, sizeof(more), "+%d", _count - _scroll - MAX_ROWS);
+        c.drawString(more, SCREEN_W - 26, listY + (MAX_ROWS - 1) * 12 + 1);
     }
 
     c.setTextDatum(textdatum_t::bottom_left);
     c.setTextColor(DARKGRAY);
-    c.drawString(tr(Str::AlertDismissHint), 14, SCREEN_H - 8);
+    c.drawString(tr(_count > MAX_ROWS ? Str::BriefScrollHint : Str::AlertDismissHint),
+                 14, SCREEN_H - 8);
 }
 
 void BriefingApp::onKey(const KeyEvent& e) {
-    (void)e;
+    // ; . scrollean; cualquier otra tecla cierra
+    if (e.key == Key::Up && _scroll > 0) {
+        --_scroll;
+        requestRedraw();
+        return;
+    }
+    if (e.key == Key::Down && _scroll + MAX_ROWS < _count) {
+        ++_scroll;
+        requestRedraw();
+        return;
+    }
+    if (e.key == Key::Up || e.key == Key::Down) return;   // tope: no cerrar
     briefingService.dismiss();
     appManager.goBack();
 }

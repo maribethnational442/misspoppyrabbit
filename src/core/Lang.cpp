@@ -66,6 +66,7 @@ const char* const EN[N] = {
     "! %d events overlap",
     "> Briefing: %02d:%02d (, / adjust)",
     "> Timezone: %s",
+    "; . scroll   other key: close",
 };
 
 const char* const ES[N] = {
@@ -125,6 +126,7 @@ const char* const ES[N] = {
     "! %d eventos se cruzan",
     "> Resumen: %02d:%02d (, / ajustar)",
     "> Zona horaria: %s",
+    "; . scroll   otra tecla: cerrar",
 };
 
 const char* const DAYS_EN[7]    = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
