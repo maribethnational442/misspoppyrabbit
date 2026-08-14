@@ -30,6 +30,28 @@ pocket.
 It was built around one core need: **not missing meetings**. Everything else
 grew around that.
 
+## Why a dedicated device?
+
+Everything this firmware does, your phone already does. So does your laptop.
+Even your smartwatch. That's not an oversight — **that's the problem**.
+
+Modern devices are notification battlefields. Every app fights for your
+attention, and when everything notifies, nothing is a priority. Sure, you can
+fight back: focus modes, per-app permissions, filters, schedules… and then
+re-configure all of it every time you install something new. That permanent
+meta-task of *managing what's allowed to interrupt you* is real work — and if
+you have ADHD, it's genuinely exhausting work that never ends.
+
+Miss Poppy Rabbit takes the opposite approach: **a dedicated device that can
+only interrupt you with the things you chose**. It runs nothing else. No app
+can push anything. If the rabbit rings, it's a meeting, a reminder or a
+pomodoro — by definition something *you* decided matters. The filtering
+problem doesn't get solved here; it simply **ceases to exist**, because there
+is nothing to filter.
+
+A quiet little screen on the desk that only speaks when it's important.
+That's the entire product.
+
 ## Features
 
 ### 📅 Multi-calendar Agenda
