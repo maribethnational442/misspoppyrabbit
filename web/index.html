@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ms P OS</title>
+<style>
+  :root {
+    --bg: #000;
+    --fg: #fff;
+    --poppy: #E63946;
+    --poppy-dim: #8a222a;
+    --stem: #6A994E;
+    --gray: #888;
+    --darkgray: #2a2a2a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Courier New", monospace;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  header { display: flex; align-items: center; gap: 12px; padding: 8px 0 16px; border-bottom: 2px solid var(--darkgray); }
+  header h1 { font-size: 22px; letter-spacing: 2px; }
+  header .sub { color: var(--gray); font-size: 12px; }
+  #wsdot { width: 10px; height: 10px; border-radius: 50%; background: var(--gray); margin-left: auto; }
+  #wsdot.on { background: var(--stem); }
+  canvas { image-rendering: pixelated; }
+
+  .card { border: 1px solid var(--darkgray); border-radius: 8px; padding: 16px; margin-top: 16px; }
+  .card h2 { font-size: 14px; color: var(--poppy); letter-spacing: 1px; margin-bottom: 12px; }
+
+  /* Pomodoro */
+  #pomo { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  #pomo-time { font-size: 42px; font-weight: bold; }
+  #pomo-phase { font-size: 13px; letter-spacing: 2px; }
+  #pomo-phase.work { color: var(--poppy); }
+  #pomo-phase.break { color: var(--stem); }
+  #pomo-today { color: var(--stem); font-size: 12px; margin-top: 4px; }
+  #pomo-bar { height: 8px; background: var(--darkgray); border-radius: 4px; overflow: hidden; flex-basis: 100%; }
+  #pomo-fill { height: 100%; background: var(--poppy); width: 0%; transition: width .5s linear; }
+  button {
+    background: var(--bg); color: var(--fg); border: 1px solid var(--poppy);
+    border-radius: 6px; padding: 8px 14px; font-family: inherit; cursor: pointer;
+  }
+  button:hover { background: var(--poppy-dim); }
+
+  /* Tareas */
+  #newtask { display: flex; gap: 8px; margin-bottom: 12px; }
+  #newtask input {
+    flex: 1; background: var(--bg); color: var(--fg);
+    border: 1px solid var(--darkgray); border-radius: 6px; padding: 8px; font-family: inherit;
+  }
+  #newtask input:focus { outline: none; border-color: var(--poppy); }
+  ul { list-style: none; }
+  li { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-bottom: 1px solid var(--darkgray); }
+  li .box { width: 16px; height: 16px; border: 1px solid var(--fg); border-radius: 3px; cursor: pointer; flex: none; }
+  li.done .box { background: var(--stem); border-color: var(--stem); }
+  li.done .title { color: var(--gray); text-decoration: line-through; }
+  li .title { flex: 1; }
+  li .prio { font-size: 10px; padding: 2px 8px; border-radius: 8px; cursor: pointer; border: 1px solid var(--gray); color: var(--gray); }
+  li .prio.p2 { border-color: var(--poppy); color: var(--poppy); }
+  li .prio.p1 { border-color: var(--fg); color: var(--fg); }
+  li .del { color: var(--gray); cursor: pointer; padding: 0 6px; }
+  li .del:hover { color: var(--poppy); }
+  #empty { color: var(--gray); font-size: 13px; padding: 8px 0; }
+
+  footer { color: var(--gray); font-size: 11px; margin-top: 16px; display: flex; gap: 16px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<header>
+  <canvas id="rabbit" width="16" height="16" style="width:48px;height:48px"></canvas>
+  <div>
+    <h1>Ms P OS</h1>
+    <div class="sub" id="devname">conectando...</div>
+  </div>
+  <div id="wsdot" title="WebSocket"></div>
+</header>
+
+<div class="card">
+  <h2>POMODORO</h2>
+  <div id="pomo">
+    <div>
+      <div id="pomo-time">--:--</div>
+      <div id="pomo-phase" class="work">TRABAJO</div>
+      <div id="pomo-today"></div>
+    </div>
+    <button id="pomo-btn" onclick="post('/api/pomodoro/action')">Iniciar</button>
+    <button onclick="post('/api/pomodoro/reset')">Reiniciar</button>
+    <div id="pomo-bar"><div id="pomo-fill"></div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>TAREAS</h2>
+  <form id="newtask" onsubmit="return addTask()">
+    <input id="title" maxlength="47" placeholder="Nueva tarea..." autocomplete="off">
+    <button type="submit">Crear</button>
+  </form>
+  <ul id="tasks"></ul>
+  <div id="empty" hidden>Sin tareas. El conejo esta orgulloso de ti.</div>
+</div>
+
+<footer>
+  <span id="st-batt"></span>
+  <span id="st-heap"></span>
+  <span id="st-up"></span>
+  <span id="st-ver"></span>
+</footer>
+
+<script>
+// El mismo conejo que el firmware, mismo formato de mapa de caracteres
+const RABBIT = [
+  "   ##    ##     ",
+  "  ####  ####    ",
+  "  ####  ####    ",
+  "  ####  ####    ",
+  "  ####  #### RR ",
+  "  ##########RRRR",
+  " ###########RRRR",
+  " ##  ######  RR ",
+  " ##  ######  G  ",
+  " ############G  ",
+  " ######RR#####  ",
+  "  #####RR####   ",
+  "  ###########   ",
+  "   #########    ",
+  "    #######     ",
+  "                ",
+];
+const COLORS = { "#": "#fff", "R": "#E63946", "r": "#8a222a", "G": "#6A994E" };
+(function drawRabbit() {
+  const ctx = document.getElementById("rabbit").getContext("2d");
+  RABBIT.forEach((row, y) => [...row].forEach((ch, x) => {
+    if (COLORS[ch]) { ctx.fillStyle = COLORS[ch]; ctx.fillRect(x, y, 1, 1); }
+  }));
+})();
+
+const $ = (id) => document.getElementById(id);
+
+async function post(url) { await fetch(url, { method: "POST" }); }
+
+function addTask() {
+  const title = $("title").value.trim();
+  if (title) {
+    fetch("/api/tasks?title=" + encodeURIComponent(title), { method: "POST" });
+    $("title").value = "";
+  }
+  return false;   // no recargar la página
+}
+
+const PRIO = ["baja", "media", "alta"];
+function renderTasks(tasks) {
+  const ul = $("tasks");
+  ul.innerHTML = "";
+  const sorted = [...tasks.filter(t => !t.done), ...tasks.filter(t => t.done)];
+  for (const t of sorted) {
+    const li = document.createElement("li");
+    li.className = t.done ? "done" : "";
+    li.innerHTML =
+      `<div class="box" onclick="post('/api/tasks/toggle?id=${t.id}')"></div>` +
+      `<span class="title"></span>` +
+      `<span class="prio p${t.prio}" onclick="post('/api/tasks/priority?id=${t.id}')">${PRIO[t.prio]}</span>` +
+      `<span class="del" onclick="if(confirm('Borrar tarea?'))post('/api/tasks/delete?id=${t.id}')">&times;</span>`;
+    li.querySelector(".title").textContent = t.title;   // seguro ante HTML en títulos
+    ul.appendChild(li);
+  }
+  $("empty").hidden = sorted.length > 0;
+}
+
+function renderPomo(p) {
+  const m = String(Math.floor(p.remainingSec / 60)).padStart(2, "0");
+  const s = String(p.remainingSec % 60).padStart(2, "0");
+  $("pomo-time").textContent = `${m}:${s}`;
+  const work = p.phase === "work";
+  $("pomo-phase").textContent = work ? "TRABAJO" : "DESCANSO";
+  $("pomo-phase").className = work ? "work" : "break";
+  $("pomo-fill").style.width = (100 * p.remainingSec / p.totalSec) + "%";
+  $("pomo-fill").style.background = work ? "var(--poppy)" : "var(--stem)";
+  $("pomo-today").textContent = `Hoy: ${p.today} pomodoros`;
+  $("pomo-btn").textContent =
+    { ready: "Iniciar", running: "Pausar", paused: "Seguir", finished: "Siguiente" }[p.run];
+}
+
+async function refreshStatus() {
+  try {
+    const s = await (await fetch("/api/status")).json();
+    $("devname").textContent = `${s.ssid} - ${s.ip}`;
+    $("st-batt").textContent = `bateria ${s.battery}%`;
+    $("st-heap").textContent = `RAM libre ${(s.heap / 1024) | 0} KB`;
+    $("st-up").textContent = `uptime ${(s.uptimeMin / 60) | 0}h ${s.uptimeMin % 60}m`;
+    $("st-ver").textContent = `v${s.version}`;
+  } catch (e) { /* dispositivo dormido o fuera de red */ }
+}
+
+// WebSocket con reconexión; si no hay WS, la página igual carga por REST
+let ws;
+function connectWS() {
+  ws = new WebSocket(`ws://${location.host}/ws`);
+  ws.onopen = () => $("wsdot").classList.add("on");
+  ws.onclose = () => { $("wsdot").classList.remove("on"); setTimeout(connectWS, 3000); };
+  ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data);
+    if (msg.type === "tasks") renderTasks(msg.tasks);
+    if (msg.type === "pomo") renderPomo(msg.pomo);
+  };
+}
+
+(async function init() {
+  renderTasks(await (await fetch("/api/tasks")).json());
+  renderPomo(await (await fetch("/api/pomodoro")).json());
+  refreshStatus();
+  setInterval(refreshStatus, 10000);
+  connectWS();
+})();
+</script>
+</body>
+</html>
