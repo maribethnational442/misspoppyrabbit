@@ -69,7 +69,6 @@
   #empty { color: var(--gray); font-size: 13px; padding: 8px 0; }
 
   footer { color: var(--gray); font-size: 11px; margin-top: 16px; display: flex; gap: 16px; flex-wrap: wrap; }
-  #bm-link { color: var(--stem); text-decoration: none; border-bottom: 1px dashed var(--stem); cursor: grab; }
 
   /* Agenda */
   #cal-legend { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -125,18 +124,12 @@
   <div id="week-strip"></div>
   <ul id="events"></ul>
   <div id="ev-empty" hidden>No events.</div>
-  <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+  <div style="display:flex;gap:8px;margin-top:10px">
     <button id="ev-add" onclick="openForm()">+ Event</button>
     <button id="ev-import" onclick="document.getElementById('ics-file').click()">Import .ics</button>
-    <button id="ev-paste" onclick="openPaste()">Paste capture</button>
     <input type="file" id="ics-file" accept=".ics,text/calendar" hidden>
-    <span id="bm-wrap" style="font-size:11px;color:var(--gray);margin-left:auto">
-      <!--BOOKMARKLET_START--><a id="bm-link" href="javascript:(function()%7Bconst%20MONTHS%20%3D%20%7B%0A%20%20january%3A%201%2C%20february%3A%202%2C%20march%3A%203%2C%20april%3A%204%2C%20may%3A%205%2C%20june%3A%206%2C%20july%3A%207%2C%0A%20%20august%3A%208%2C%20september%3A%209%2C%20october%3A%2010%2C%20november%3A%2011%2C%20december%3A%2012%2C%0A%20%20enero%3A%201%2C%20febrero%3A%202%2C%20marzo%3A%203%2C%20abril%3A%204%2C%20mayo%3A%205%2C%20junio%3A%206%2C%20julio%3A%207%2C%0A%20%20agosto%3A%208%2C%20septiembre%3A%209%2C%20octubre%3A%2010%2C%20noviembre%3A%2011%2C%20diciembre%3A%2012%2C%0A%7D%3B%0Afunction%20parseDate(label)%20%7B%0A%20%20let%20y%20%3D%20null%2C%20mo%20%3D%20null%2C%20d%20%3D%20null%3B%0A%20%20for%20(const%20m%20of%20label.matchAll(%2F(%5BA-Za-z%C3%80-%C3%BA%5D%2B)%5Cs%2B(%5Cd%7B1%2C2%7D)(%3F%3A%2C%3F%5Cs%2B(%5Cd%7B4%7D))%3F%2Fg))%20%7B%0A%20%20%20%20const%20month%20%3D%20MONTHS%5Bm%5B1%5D.toLowerCase()%5D%3B%0A%20%20%20%20if%20(month)%20%7B%20mo%20%3D%20month%3B%20d%20%3D%20%2Bm%5B2%5D%3B%20y%20%3D%20m%5B3%5D%20%3F%20%2Bm%5B3%5D%20%3A%20null%3B%20break%3B%20%7D%0A%20%20%7D%0A%20%20if%20(mo%20%3D%3D%3D%20null)%20%7B%0A%20%20%20%20for%20(const%20m%20of%20label.matchAll(%2F(%5Cd%7B1%2C2%7D)%5Cs%2Bde%5Cs%2B(%5Ba-zA-Z%C3%A1%C3%A9%C3%AD%C3%B3%C3%BA%C3%B1%5D%2B)(%3F%3A%5Cs%2Bde%5Cs%2B(%5Cd%7B4%7D))%3F%2Fgi))%20%7B%0A%20%20%20%20%20%20const%20month%20%3D%20MONTHS%5Bm%5B2%5D.toLowerCase()%5D%3B%0A%20%20%20%20%20%20if%20(month)%20%7B%20mo%20%3D%20month%3B%20d%20%3D%20%2Bm%5B1%5D%3B%20y%20%3D%20m%5B3%5D%20%3F%20%2Bm%5B3%5D%20%3A%20null%3B%20break%3B%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%20%20if%20(mo%20%3D%3D%3D%20null)%20return%20null%3B%0A%20%20if%20(y%20%3D%3D%3D%20null)%20%7B%0A%20%20%20%20const%20now%20%3D%20new%20Date()%3B%0A%20%20%20%20y%20%3D%20now.getFullYear()%3B%0A%20%20%20%20if%20(new%20Date(y%2C%20mo%20-%201%2C%20d).getTime()%20%3C%20now.getTime()%20-%2060%20*%2086400000)%20y%20%2B%3D%201%3B%0A%20%20%7D%0A%20%20return%20%7B%20y%2C%20mo%2C%20d%20%7D%3B%0A%7D%0Aconst%20TIME_TOKEN%20%3D%20%2F(%5Cd%7B1%2C2%7D)%3A(%5Cd%7B2%7D)%5Cs*(%5Bap%5D)%5C.%3F%5Cs%3F%5C.%3Fm%3F%5C.%3F%5Cb%7C(%5Cd%7B1%2C2%7D)%5Cs*(%5Bap%5D)%5C.%3F%5Cs%3Fm%5C.%3F%5Cb%7C(%5Cd%7B1%2C2%7D)%3A(%5Cd%7B2%7D)%2Fgi%3B%0Afunction%20tokenTo24h(m)%20%7B%0A%20%20let%20h%2C%20min%2C%20mer%3B%0A%20%20if%20(m%5B1%5D%20!%3D%3D%20undefined)%20%7B%20h%20%3D%20%2Bm%5B1%5D%3B%20min%20%3D%20%2Bm%5B2%5D%3B%20mer%20%3D%20m%5B3%5D%3B%20%7D%0A%20%20else%20if%20(m%5B4%5D%20!%3D%3D%20undefined)%20%7B%20h%20%3D%20%2Bm%5B4%5D%3B%20min%20%3D%200%3B%20mer%20%3D%20m%5B5%5D%3B%20%7D%0A%20%20else%20%7B%20h%20%3D%20%2Bm%5B6%5D%3B%20min%20%3D%20%2Bm%5B7%5D%3B%20mer%20%3D%20null%3B%20%7D%0A%20%20if%20(mer)%20%7B%0A%20%20%20%20const%20p%20%3D%20mer.toLowerCase()%20%3D%3D%3D%20%22p%22%3B%0A%20%20%20%20if%20(p%20%26%26%20h%20%3C%2012)%20h%20%2B%3D%2012%3B%0A%20%20%20%20if%20(!p%20%26%26%20h%20%3D%3D%3D%2012)%20h%20%3D%200%3B%0A%20%20%7D%0A%20%20return%20%7B%20h%2C%20min%2C%20hadMer%3A%20!!mer%20%7D%3B%0A%7D%0Afunction%20parseTimes(label)%20%7B%0A%20%20const%20tokens%20%3D%20%5B...label.matchAll(TIME_TOKEN)%5D.slice(0%2C%202)%3B%0A%20%20if%20(tokens.length%20%3D%3D%3D%202)%20%7B%0A%20%20%20%20const%20a%20%3D%20tokenTo24h(tokens%5B0%5D)%3B%0A%20%20%20%20const%20b%20%3D%20tokenTo24h(tokens%5B1%5D)%3B%0A%20%20%20%20if%20(!a.hadMer%20%26%26%20b.hadMer%20%26%26%20b.h%20%3E%2012%20%26%26%20a.h%20%3C%2012%20%26%26%20a.h%20%3C%3D%20b.h%20-%2012)%20%7B%0A%20%20%20%20%20%20a.h%20%2B%3D%2012%3B%0A%20%20%20%20%7D%0A%20%20%20%20return%20%7B%20a%2C%20b%20%7D%3B%0A%20%20%7D%0A%20%20const%20m%20%3D%20label.match(%2F(%5Cd%7B1%2C2%7D)%5Cs*(%3F%3Ato%7Ca%7Chasta%7C%E2%80%93%7C%E2%80%94%7C-)%5Cs*(%5Cd%7B1%2C2%7D)%5Cs*(%5Bap%5D)%5C.%3F%5Cs%3Fm%5C.%3F%5Cb%2Fi)%3B%0A%20%20if%20(m)%20%7B%0A%20%20%20%20const%20mer%20%3D%20m%5B3%5D.toLowerCase()%3B%0A%20%20%20%20let%20h1%20%3D%20%2Bm%5B1%5D%2C%20h2%20%3D%20%2Bm%5B2%5D%3B%0A%20%20%20%20if%20(mer%20%3D%3D%3D%20%22p%22)%20%7B%20if%20(h2%20%3C%2012)%20h2%20%2B%3D%2012%3B%20if%20(h1%20%3C%2012%20%26%26%20h1%20%3C%3D%20h2%20-%2012)%20h1%20%2B%3D%2012%3B%20%7D%0A%20%20%20%20return%20%7B%20a%3A%20%7B%20h%3A%20h1%2C%20min%3A%200%20%7D%2C%20b%3A%20%7B%20h%3A%20h2%2C%20min%3A%200%20%7D%20%7D%3B%0A%20%20%7D%0A%20%20return%20null%3B%0A%7D%0Afunction%20pickTitle(label%2C%20text)%20%7B%0A%20%20for%20(const%20seg%20of%20label.split(%22%2C%22).slice(0%2C%202).map((s)%20%3D%3E%20s.trim()))%20%7B%0A%20%20%20%20if%20(seg.length%20%3E%202%20%26%26%20!parseTimes(seg)%20%26%26%20!parseDate(seg)%20%26%26%20!%2F%5Cd%7B4%7D%2F.test(seg))%20%7B%0A%20%20%20%20%20%20return%20seg.slice(0%2C%2047)%3B%0A%20%20%20%20%7D%0A%20%20%7D%0A%20%20const%20t%20%3D%20(text%20%7C%7C%20%22%22)%0A%20%20%20%20.replace(%2F%5E%5B%5Cs%2C%E2%80%93%E2%80%94-%5D*(%5Cd%7B1%2C2%7D(%3A%5Cd%7B2%7D)%3F%5Cs*(%5Bap%5D%5C.%3F%5Cs%3Fm%5C.%3F)%3F%5Cs*%5B%E2%80%93%E2%80%94a-%5D%7B0%2C5%7D%5Cs*)%7B1%2C2%7D%2Fi%2C%20%22%22)%0A%20%20%20%20.replace(%2F%5Cs%2B%2Fg%2C%20%22%20%22)%0A%20%20%20%20.trim()%3B%0A%20%20if%20(t.length%20%3E%202)%20return%20t.slice(0%2C%2047)%3B%0A%20%20return%20null%3B%0A%7D%0Afunction%20parseCandidate(label%2C%20text)%20%7B%0A%20%20if%20(!label%20%7C%7C%20label.length%20%3C%2012%20%7C%7C%20!%2F%5Cd%2F.test(label))%20return%20null%3B%0A%20%20const%20date%20%3D%20parseDate(label)%3B%0A%20%20if%20(!date)%20return%20null%3B%0A%20%20const%20times%20%3D%20parseTimes(label)%3B%0A%20%20if%20(!times)%20return%20null%3B%20%20%20%2F%2F%20sin%20rango%20horario%20%3D%20dia%20completo%20u%20otra%20cosa%0A%20%20const%20title%20%3D%20pickTitle(label%2C%20text)%3B%0A%20%20if%20(!title)%20return%20null%3B%0A%20%20const%20start%20%3D%20new%20Date(date.y%2C%20date.mo%20-%201%2C%20date.d%2C%20times.a.h%2C%20times.a.min).getTime()%20%2F%201000%3B%0A%20%20let%20end%20%3D%20new%20Date(date.y%2C%20date.mo%20-%201%2C%20date.d%2C%20times.b.h%2C%20times.b.min).getTime()%20%2F%201000%3B%0A%20%20if%20(end%20%3C%3D%20start)%20end%20%2B%3D%2086400%3B%20%20%20%2F%2F%20cruza%20medianoche%20(raro%2C%20pero%20valido)%0A%20%20if%20(end%20-%20start%20%3E%2012%20*%203600)%20return%20null%3B%20%20%20%2F%2F%20sospechoso%3A%20mejor%20no%20capturar%0A%20%20return%20%7B%20title%2C%20start%2C%20end%20%7D%3B%0A%7D%0Afunction%20hashUid(s)%20%7B%0A%20%20let%20h%20%3D%205381%3B%0A%20%20for%20(let%20i%20%3D%200%3B%20i%20%3C%20s.length%3B%20i%2B%2B)%20h%20%3D%20((h%20*%2033)%20%5E%20s.charCodeAt(i))%20%3E%3E%3E%200%3B%0A%20%20return%20h.toString(36)%3B%0A%7D%0Afunction%20bestLabelFrom(el)%20%7B%0A%20%20let%20best%20%3D%20null%3B%0A%20%20for%20(const%20n%20of%20%5Bel%2C%20...el.querySelectorAll(%22*%22)%5D)%20%7B%0A%20%20%20%20const%20t%20%3D%20(n.textContent%20%7C%7C%20%22%22).replace(%2F%5Cs%2B%2Fg%2C%20%22%20%22).trim()%3B%0A%20%20%20%20if%20(t.length%20%3C%2012%20%7C%7C%20t.length%20%3E%20400)%20continue%3B%0A%20%20%20%20if%20(!parseDate(t)%20%7C%7C%20!parseTimes(t))%20continue%3B%0A%20%20%20%20if%20(!best%20%7C%7C%20t.length%20%3C%20best.length)%20best%20%3D%20t%3B%0A%20%20%7D%0A%20%20return%20best%3B%0A%7D%0A%0A(function()%7B%0A%20%20var%20found%20%3D%20%7B%7D%3B%0A%20%20var%20add%20%3D%20function(p)%7B%20found%5Bp.title%20%2B%20%22%7C%22%20%2B%20p.start%5D%20%3D%20p%3B%20%7D%3B%0A%20%20document.querySelectorAll(%22%5Baria-label%5D%22).forEach(function(el)%7B%0A%20%20%20%20var%20p%20%3D%20parseCandidate(el.getAttribute(%22aria-label%22)%2C%20el.textContent)%3B%0A%20%20%20%20if%20(p)%20add(p)%3B%0A%20%20%7D)%3B%0A%20%20document.querySelectorAll(%22%5Bdata-eventid%5D%22).forEach(function(el)%7B%0A%20%20%20%20var%20l%20%3D%20bestLabelFrom(el)%3B%0A%20%20%20%20if%20(!l)%20return%3B%0A%20%20%20%20var%20p%20%3D%20parseCandidate(l%2C%20%22%22)%3B%0A%20%20%20%20if%20(p)%20add(p)%3B%0A%20%20%7D)%3B%0A%20%20var%20now%20%3D%20Date.now()%20%2F%201000%3B%0A%20%20var%20evs%20%3D%20Object.values(found)%0A%20%20%20%20.filter(function(e)%7B%20return%20e.start%20%3E%3D%20now%20-%203600%20%26%26%20e.start%20%3C%3D%20now%20%2B%2060%20*%2086400%3B%20%7D)%0A%20%20%20%20.map(function(e)%7B%20return%20%7B%20uid%3A%20%22cap-%22%20%2B%20hashUid(e.title%20%2B%20%22%7C%22%20%2B%20e.start)%2C%0A%20%20%20%20%20%20title%3A%20e.title.slice(0%2C%2047)%2C%20start%3A%20Math.round(e.start)%2C%20end%3A%20Math.round(e.end)%20%7D%3B%20%7D)%3B%0A%20%20if%20(!evs.length)%20%7B%20alert(%22No%20events%20found%20in%20this%20view%20(week%20view%20works%20best)%22)%3B%20return%3B%20%7D%0A%20%20var%20json%20%3D%20JSON.stringify(%7B%20events%3A%20evs%20%7D)%3B%0A%20%20var%20done%20%3D%20function()%7B%20alert(%22%5BMiss%20Poppy%5D%20%22%20%2B%20evs.length%20%2B%20%22%20events%20copied%20-%20paste%20them%20in%20the%20rabbit%20Web%20UI%20(Agenda%20%3E%20Paste%20capture)%22)%3B%20%7D%3B%0A%20%20if%20(navigator.clipboard%20%26%26%20navigator.clipboard.writeText)%20%7B%0A%20%20%20%20navigator.clipboard.writeText(json).then(done%2C%20function()%7B%20prompt(%22Copy%20this%20JSON%3A%22%2C%20json)%3B%20%7D)%3B%0A%20%20%7D%20else%20%7B%0A%20%20%20%20prompt(%22Copy%20this%20JSON%3A%22%2C%20json)%3B%0A%20%20%7D%0A%7D)()%3B%0A%7D)()">&#128007; Capture bookmarklet</a><!--BOOKMARKLET_END-->
-      <span id="bm-hint"></span>
-    </span>
   </div>
   <div id="import-panel" hidden style="margin-top:10px">
-    <textarea id="paste-json" hidden rows="3" style="width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--darkgray);border-radius:6px;padding:7px;font-family:inherit;font-size:11px;margin-bottom:8px"></textarea>
     <div id="imp-info" style="font-size:12px;color:var(--gray);margin-bottom:8px"></div>
     <div style="display:flex;gap:8px">
       <select id="imp-cal" style="background:var(--bg);color:var(--fg);border:1px solid var(--darkgray);border-radius:6px;padding:7px;font-family:inherit"></select>
@@ -225,10 +218,7 @@ const I18N = {
         impBtn: "Import .ics", impGo: "Import", impCancel: "Cancel",
         impInfo: (n, s) => `${n} events in the next 60 days · ${s} skipped (all-day / unsupported repeats / cancelled)`,
         impNone: "No importable events found in that file.",
-        impDone: (q, d) => `Imported: ${q} ok${d ? `, ${d} failed` : ""}. Re-importing never duplicates.`,
-        pasteBtn: "Paste capture", pastePh: "Paste here the JSON copied by the capture bookmarklet...",
-        pasteInfo: (n) => `${n} captured events ready`, pasteBad: "That doesn't look like capture JSON.",
-        bmHint: "← drag to bookmarks bar; click it while viewing your calendar" },
+        impDone: (q, d) => `Imported: ${q} ok${d ? `, ${d} failed` : ""}. Re-importing never duplicates.` },
   es: { tasks: "TAREAS", reset: "Reiniciar", create: "Crear", placeholder: "Nueva tarea...",
         empty: "Sin tareas. El conejo esta orgulloso de ti.", confirmDel: "Borrar tarea?",
         work: "TRABAJO", brk: "DESCANSO", today: "Hoy", prio: ["baja", "media", "alta"],
@@ -240,10 +230,7 @@ const I18N = {
         impBtn: "Importar .ics", impGo: "Importar", impCancel: "Cancelar",
         impInfo: (n, s) => `${n} eventos en los proximos 60 dias · ${s} omitidos (dia completo / repeticiones no soportadas / cancelados)`,
         impNone: "No hay eventos importables en ese archivo.",
-        impDone: (q, d) => `Importados: ${q} ok${d ? `, ${d} fallidos` : ""}. Re-importar nunca duplica.`,
-        pasteBtn: "Pegar captura", pastePh: "Pega aqui el JSON que copio el bookmarklet de captura...",
-        pasteInfo: (n) => `${n} eventos capturados listos`, pasteBad: "Eso no parece un JSON de captura.",
-        bmHint: "← arrastralo a la barra de marcadores; clic mientras ves tu calendario" },
+        impDone: (q, d) => `Importados: ${q} ok${d ? `, ${d} fallidos` : ""}. Re-importar nunca duplica.` },
 };
 let LANG = "en";
 const T = () => I18N[LANG];
@@ -261,9 +248,6 @@ function applyLang() {
   $("ev-title").placeholder = T().evTitle;
   $("ev-rem-label").textContent = T().remLabel;
   $("ev-import").textContent = T().impBtn;
-  $("ev-paste").textContent = T().pasteBtn;
-  $("paste-json").placeholder = T().pastePh;
-  $("bm-hint").textContent = T().bmHint;
   $("imp-go").textContent = T().impGo;
   $("imp-cancel").textContent = T().impCancel;
   renderTasks(lastTasks);
@@ -571,42 +555,11 @@ let pendingImport = [];
 
 function closeImport() {
   $("import-panel").hidden = true;
-  $("paste-json").hidden = true;
-  $("paste-json").value = "";
   $("ics-file").value = "";
   pendingImport = [];
 }
 
-// Import por pegado: el JSON viene del bookmarklet de captura (Safari y
-// otros navegadores donde no se puede instalar la extension)
-function openPaste() {
-  pendingImport = [];
-  $("imp-info").textContent = "";
-  $("imp-go").disabled = true;
-  const sel = $("imp-cal");
-  sel.innerHTML = agenda.calendars.map(c => `<option value="${c.id}"></option>`).join("");
-  agenda.calendars.forEach((c, i) => sel.options[i].textContent = c.name);
-  $("paste-json").hidden = false;
-  $("import-panel").hidden = false;
-  $("paste-json").focus();
-}
-
-$("paste-json") && ($("paste-json").oninput = () => {
-  try {
-    const data = JSON.parse($("paste-json").value);
-    const evs = (data.events || []).filter(e => e.uid && e.title && e.end > e.start);
-    pendingImport = evs.slice(0, 150);
-    $("imp-info").textContent = pendingImport.length
-        ? T().pasteInfo(pendingImport.length) : T().pasteBad;
-    $("imp-go").disabled = pendingImport.length === 0;
-  } catch {
-    $("imp-info").textContent = $("paste-json").value.trim() ? T().pasteBad : "";
-    $("imp-go").disabled = true;
-  }
-});
-
 async function loadIcsFile(file) {
-  $("paste-json").hidden = true;   // este panel es del flujo .ics
   const text = await file.text();
   const now = Date.now() / 1000;
   const winEnd = now + 60 * 86400;

@@ -104,27 +104,6 @@ $("cap-clear").onclick = async () => {
   $("cap-count").textContent = "0 upcoming events captured";
 };
 
-// Exportar lo capturado como JSON al portapapeles: el puente para cuando
-// ESTE navegador no puede alcanzar al dispositivo (p.ej. Chrome corporativo
-// con la red local bloqueada). Se pega en la WebUI: Agenda > Paste capture.
-$("cap-copy").onclick = async () => {
-  const { captured = {} } = await chrome.storage.local.get("captured");
-  const now = Date.now() / 1000;
-  const events = Object.values(captured)
-    .filter((e) => e.start >= now - 3600 && e.start <= now + 60 * 86400)
-    .map((e) => ({ uid: e.uid, title: e.title.slice(0, 47),
-                   start: Math.round(e.start), end: Math.round(e.end) }));
-  if (!events.length) {
-    $("status").textContent = "Nothing to copy yet — browse your calendar first.";
-    $("status").className = "err";
-    return;
-  }
-  await navigator.clipboard.writeText(JSON.stringify({ events }));
-  $("status").textContent =
-    `${events.length} events copied. Open the device Web UI (in a browser that can reach it) > Agenda > Paste capture.`;
-  $("status").className = "ok";
-};
-
 async function save() {
   await chrome.storage.sync.set({
     device: $("device").value.trim().replace(/\/$/, "") || "http://prabbit.local",

@@ -122,25 +122,24 @@ function hashUid(s) {
   return h.toString(36);
 }
 
-// En el Google Calendar actual los chips de evento NO llevan aria-label:
-// el texto accesible vive en un span oculto DENTRO del chip. Se busca el
-// texto mas corto del subarbol que contenga fecha + rango horario.
-// (Fuera del guard DOM: el bookmarklet de Safari también la usa.)
-function bestLabelFrom(el) {
-  let best = null;
-  for (const n of [el, ...el.querySelectorAll("*")]) {
-    const t = (n.textContent || "").replace(/\s+/g, " ").trim();
-    if (t.length < 12 || t.length > 400) continue;
-    if (!parseDate(t) || !parseTimes(t)) continue;
-    if (!best || t.length < best.length) best = t;
-  }
-  return best;
-}
-
 // --- Parte con DOM (no corre en los tests de Node) --------------------------
 if (typeof document !== "undefined" && typeof chrome !== "undefined" && chrome.storage) {
   let pending = false;
   let observer = null;
+
+  // En el Google Calendar actual los chips de evento NO llevan aria-label:
+  // el texto accesible vive en un span oculto DENTRO del chip. Se busca el
+  // texto mas corto del subarbol que contenga fecha + rango horario.
+  function bestLabelFrom(el) {
+    let best = null;
+    for (const n of [el, ...el.querySelectorAll("*")]) {
+      const t = (n.textContent || "").replace(/\s+/g, " ").trim();
+      if (t.length < 12 || t.length > 400) continue;
+      if (!parseDate(t) || !parseTimes(t)) continue;
+      if (!best || t.length < best.length) best = t;
+    }
+    return best;
+  }
 
   async function scan() {
     pending = false;
