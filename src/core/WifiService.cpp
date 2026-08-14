@@ -1,6 +1,7 @@
 #include "WifiService.h"
 #include <Preferences.h>
 #include "Config.h"
+#include "TimeZones.h"
 
 WifiService wifiService;
 
@@ -107,6 +108,6 @@ int WifiService::scanResult() {
 }
 
 void WifiService::syncClock() {
-    // NTP con zona horaria: a partir de aquí time() da la hora local real.
-    configTzTime(config::TIMEZONE, config::NTP_SERVER);
+    // NTP con la zona elegida en Settings: time() dará la hora local real.
+    configTzTime(tzones::posix(), config::NTP_SERVER);
 }

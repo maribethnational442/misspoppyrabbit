@@ -9,7 +9,7 @@ namespace config {
 
 constexpr const char* OS_NAME       = "Miss Poppy Rabbit";
 constexpr const char* OS_NAME_SHORT = "Miss P. Rabbit";   // para espacios estrechos (launcher)
-constexpr const char* OS_VERSION    = "0.5.0";
+constexpr const char* OS_VERSION    = "0.6.0";
 
 // --- Pantalla y ahorro de energía ---
 // La pantalla es IPS/LCD: lo que gasta es la RETROILUMINACIÓN, no los píxeles.
@@ -32,9 +32,7 @@ constexpr const char* DATA_DIR    = "/mspos";
 constexpr const char* TASKS_FILE  = "/mspos/tasks.json";
 constexpr const char* AGENDA_FILE = "/mspos/agenda.json";
 
-// Zona horaria en formato POSIX TZ. Bogotá = GMT-5 sin horario de verano.
-// (Ojo: en POSIX el signo va invertido — "COT5" significa UTC menos 5.)
-constexpr const char* TIMEZONE   = "COT5";
+// La zona horaria ya no vive aquí: se elige en Settings (core/TimeZones.h)
 constexpr const char* NTP_SERVER = "pool.ntp.org";
 
 // Namespace de NVS (memoria flash de config). Un solo namespace para todo el OS.
