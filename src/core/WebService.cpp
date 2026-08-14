@@ -192,8 +192,12 @@ void WebService::setupRoutes() {
                 if (calendarStore.enqueueUpsertWait(e, 200)) ++queued;
                 else ++dropped;
             }
-            char resp[48];
-            snprintf(resp, sizeof(resp), "{\"queued\":%d,\"dropped\":%d}", queued, dropped);
+            // "free" permite al cliente avisar si el store se está llenando
+            // (con el store lleno, los upserts nuevos fallan en silencio)
+            char resp[80];
+            snprintf(resp, sizeof(resp), "{\"queued\":%d,\"dropped\":%d,\"free\":%d}",
+                     queued, dropped,
+                     CalendarStore::MAX_EVENTS - calendarStore.count());
             req->send(200, "application/json", resp);
         });
     importHandler->setMethod(HTTP_POST);

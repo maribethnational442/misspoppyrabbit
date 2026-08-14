@@ -42,17 +42,19 @@ handled, so browser extensions can POST directly.
 
 Recommended batch size: **≤ 40 events per request** (the device has 512KB of
 RAM and no PSRAM); send multiple requests for more. The device stores at most
-96 events and prunes those that ended over 7 days ago.
+**200 events** and prunes those that ended over 7 days ago at boot.
 
 ## Response
 
 ```json
-{ "queued": 38, "dropped": 2 }
+{ "queued": 38, "dropped": 2, "free": 105 }
 ```
 
 `queued` events are applied asynchronously by the device main loop (usually
 within ~100ms). `dropped` counts invalid entries (missing fields,
-`end <= start`) or a saturated command queue — retry those.
+`end <= start`) or a saturated command queue — retry those. `free` is the
+remaining event capacity: if your batch exceeds it, the excess is silently
+discarded on apply, so warn the user when it gets low.
 
 ## Idempotency
 

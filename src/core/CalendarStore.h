@@ -18,7 +18,9 @@ class String;
 
 class CalendarStore {
 public:
-    static constexpr int MAX_EVENTS = 96;
+    // 200 huecos ≈ 14KB de RAM: 4 calendarios reales a 60 días vista caben.
+    // (96 se quedó corto: un solo calendario cargado ya los llenaba.)
+    static constexpr int MAX_EVENTS = 200;
     static constexpr int NUM_CALENDARS = 4;
 
     void begin();
