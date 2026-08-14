@@ -17,6 +17,7 @@ void AppManager::wakeScreen() {
 }
 
 void AppManager::begin() {
+    _keyQueue = xQueueCreate(8, sizeof(KeyEvent));
     _canvas.setColorDepth(16);
     if (_canvas.createSprite(theme::SCREEN_W, theme::SCREEN_H) == nullptr) {
         // Sin canvas no hay UI: lo dejamos registrado por serial y seguimos
@@ -95,6 +96,14 @@ void AppManager::tick() {
 
     M5Cardputer.update();             // refresca teclado, batería, etc.
     pollKeyboard();
+
+    // Teclas inyectadas por la API (rig de screenshots/depuración): entran
+    // crudas, sin pasar por combos ni por el tragado del bloqueo.
+    KeyEvent injected;
+    while (_keyQueue != nullptr && xQueueReceive(_keyQueue, &injected, 0) == pdTRUE) {
+        wakeScreen();
+        dispatchKey(injected);
+    }
 
     App* top = topApp();
     if (top == nullptr) return;
@@ -214,4 +223,8 @@ void AppManager::pollKeyboard() {
 void AppManager::dispatchKey(const KeyEvent& e) {
     App* top = topApp();
     if (top != nullptr) top->onKey(e);
+}
+
+void AppManager::injectKey(const KeyEvent& e) {
+    if (_keyQueue != nullptr) xQueueSend(_keyQueue, &e, 0);
 }

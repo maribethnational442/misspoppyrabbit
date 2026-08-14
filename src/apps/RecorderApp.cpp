@@ -50,14 +50,15 @@ void RecorderApp::draw(M5Canvas& c) {
     c.drawString("REC", 56, 48);
 
     // Tiempo transcurrido / límite
+    // Formato compacto: "00:09/1:00" cabe en pantalla (el largo se salía)
     const uint32_t s = notesService.recMs() / 1000;
     char buf[24];
-    snprintf(buf, sizeof(buf), "%02u:%02u / %02d:%02d",
+    snprintf(buf, sizeof(buf), "%02u:%02u/%d:%02d",
              (unsigned)(s / 60), (unsigned)(s % 60),
              notesService.recLimitS() / 60, notesService.recLimitS() % 60);
     c.setTextSize(2);
     c.setTextColor(GRAY);
-    c.drawString(buf, 116, 48);
+    c.drawString(buf, 108, 48);
 
     // Barra VU: el nivel del chunk recién capturado
     const int w = (notesService.recLevel() * (SCREEN_W - 56)) / 100;

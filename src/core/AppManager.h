@@ -1,5 +1,7 @@
 #pragma once
 #include <M5Cardputer.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
 #include "App.h"
 #include "StatusBar.h"
 
@@ -46,6 +48,10 @@ public:
     void unlockDevice();
     bool locked() const           { return _locked; }
 
+    // Inyección de teclas desde otra tarea (POST /api/key): herramienta de
+    // depuración y del rig de screenshots. Se drena en tick().
+    void injectKey(const KeyEvent& e);
+
 private:
     void pollKeyboard();
     void dispatchKey(const KeyEvent& e);
@@ -67,6 +73,7 @@ private:
     App*      _lockApp = nullptr;
     App*      _recApp = nullptr;
     App*      _noteApp = nullptr;
+    QueueHandle_t _keyQueue = nullptr;
 };
 
 // Instancia global única (patrón habitual en firmware: objetos de sistema

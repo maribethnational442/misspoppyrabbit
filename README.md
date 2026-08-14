@@ -123,20 +123,16 @@ reacts to every launcher item with a matching pixel prop, and knows what
 
 ## Screenshots
 
-*Pixel-accurate mockups rendered from the actual theme and sprites — real
-device photos coming soon.*
+*Real screenshots, captured over the device's own `/api/screenshot` endpoint.
+The rest you'll discover yourself.* 🐰
 
-| Launcher | Agenda | Alert |
-|---|---|---|
-| ![Launcher](docs/screenshots/launcher.svg) | ![Agenda](docs/screenshots/agenda.svg) | ![Alert](docs/screenshots/alert.svg) |
+| Launcher | Meeting alert |
+|---|---|
+| ![Launcher](docs/screenshots/launcher.png) | ![Meeting alert](docs/screenshots/alert.png) |
 
-| Pomodoro | Clock | Web UI |
-|---|---|---|
-| ![Pomodoro](docs/screenshots/pomodoro.svg) | ![Clock](docs/screenshots/clock.svg) | ![Web UI](docs/screenshots/webui.svg) |
-
-| Notes | Voice memo | Pocket lock |
-|---|---|---|
-| ![Notes](docs/screenshots/notes.svg) | ![Voice memo](docs/screenshots/recorder.svg) | ![Pocket lock](docs/screenshots/lock.svg) |
+| Notes | Recording a voice memo |
+|---|---|
+| ![Notes](docs/screenshots/notes.png) | ![Voice memo](docs/screenshots/recorder.png) |
 
 ## Installing it on your Cardputer
 

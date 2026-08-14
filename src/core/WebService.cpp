@@ -3,6 +3,7 @@
 #include <ESPmDNS.h>
 #include <M5Cardputer.h>
 #include "../generated/webui_gz.h"
+#include "AppManager.h"
 #include "CalendarStore.h"
 #include "Config.h"
 #include "Lang.h"
@@ -128,6 +129,74 @@ void WebService::setupRoutes() {
         String out;
         buildStatusJson(out);
         req->send(200, "application/json", out);
+    });
+
+    // --- Rig de screenshots/depuración --------------------------------------
+    // La pantalla REAL como BMP de 24 bits, generada por chunks leyendo el
+    // canvas píxel a píxel (97KB que jamás existen enteros en RAM).
+    _server.on("/api/screenshot", HTTP_GET, [](AsyncWebServerRequest* req) {
+        constexpr int W = 240, H = 135, ROW = W * 3;
+        constexpr uint32_t DATA = (uint32_t)ROW * H, TOTAL = 54 + DATA;
+        auto hdr = std::make_shared<std::array<uint8_t, 54>>();
+        auto& h = *hdr;
+        h.fill(0);
+        h[0] = 'B'; h[1] = 'M';
+        auto put32 = [&](int off, uint32_t v) {
+            h[off] = v & 0xFF; h[off+1] = (v >> 8) & 0xFF;
+            h[off+2] = (v >> 16) & 0xFF; h[off+3] = (v >> 24) & 0xFF;
+        };
+        put32(2, TOTAL); put32(10, 54); put32(14, 40);
+        put32(18, W); put32(22, H);
+        h[26] = 1; h[28] = 24;   // 1 plano, 24bpp
+        put32(34, DATA);
+
+        AsyncWebServerResponse* r = req->beginChunkedResponse(
+            "image/bmp",
+            [hdr](uint8_t* buf, size_t maxLen, size_t index) -> size_t {
+                size_t n = 0;
+                M5Canvas& c = appManager.canvas();
+                while (n < maxLen && index + n < TOTAL) {
+                    const uint32_t pos = index + n;
+                    if (pos < 54) {
+                        buf[n++] = (*hdr)[pos];
+                        continue;
+                    }
+                    const uint32_t p = pos - 54;
+                    const int y = H - 1 - (int)(p / ROW);   // BMP va de abajo a arriba
+                    const int col = (int)(p % ROW);
+                    const uint16_t v = c.readPixel(col / 3, y);
+                    const uint8_t comp = col % 3;            // orden BGR
+                    if (comp == 0)      buf[n++] = (uint8_t)((v & 0x1F) << 3);
+                    else if (comp == 1) buf[n++] = (uint8_t)(((v >> 5) & 0x3F) << 2);
+                    else                buf[n++] = (uint8_t)(((v >> 11) & 0x1F) << 3);
+                }
+                return n;
+            });
+        req->send(r);
+    });
+
+    // Inyección de teclas: ?k=up|down|left|right|ok|back|del|char&ch=x
+    // y especiales lock/unlock/wake. Herramienta de depuración en LAN.
+    _server.on("/api/key", HTTP_POST, [](AsyncWebServerRequest* req) {
+        const String k = req->hasParam("k") ? req->getParam("k")->value() : "";
+        KeyEvent e;
+        if      (k == "up")    e.key = Key::Up;
+        else if (k == "down")  e.key = Key::Down;
+        else if (k == "left")  e.key = Key::Left;
+        else if (k == "right") e.key = Key::Right;
+        else if (k == "ok")    e.key = Key::Ok;
+        else if (k == "back")  e.key = Key::Back;
+        else if (k == "del")   e.key = Key::Backspace;
+        else if (k == "char" && req->hasParam("ch")) {
+            e.key = Key::Char;
+            e.ch = req->getParam("ch")->value()[0];
+        }
+        else if (k == "lock")   { appManager.lockDevice();  req->send(200, "application/json", "{}"); return; }
+        else if (k == "unlock") { appManager.unlockDevice(); req->send(200, "application/json", "{}"); return; }
+        else if (k == "wake")   { appManager.wakeScreen();  req->send(200, "application/json", "{}"); return; }
+        else { req->send(400, "application/json", "{\"error\":\"k\"}"); return; }
+        appManager.injectKey(e);
+        req->send(200, "application/json", "{}");
     });
 
     // OJO al orden: ESPAsyncWebServer evalúa los handlers en orden de registro
